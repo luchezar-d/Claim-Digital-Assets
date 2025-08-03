@@ -15,23 +15,24 @@ const HeroSection = () => {
         
         {/* Left Column - Text Content */}
         <div className="flex-1 max-w-lg space-y-6 text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight animate-fade-in-up">
-            Unlock free crypto, stocks & more — 
+          <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight animate-fade-in-up">
+            Discover bonuses that give you 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              {" "}no deposit needed
+              {" "}free assets
             </span>
+            {" "}— crypto, stocks, and more.
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-300 leading-relaxed animate-fade-in-up animation-delay-200">
-            Start with Revolut, chain into Coinbase, Robinhood & more
+          <p className="font-body text-lg md:text-xl text-gray-300 leading-relaxed animate-fade-in-up animation-delay-200">
+            Some offers require a deposit, others don't. We bring them all together in one easy-to-navigate place.
           </p>
           
           <div className="animate-fade-in-up animation-delay-400">
             <button 
               onClick={() => scrollToSection('offers')}
-              className="relative bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 text-lg group overflow-hidden"
+              className="font-body relative bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 text-lg group overflow-hidden"
             >
-              <span className="relative z-10">Get Started</span>
+              <span className="relative z-10">Go To Packages</span>
               <div className="absolute inset-0 bg-purple-400 opacity-0 group-hover:opacity-30 blur-xl transition-all duration-300 group-hover:scale-110"></div>
             </button>
           </div>
