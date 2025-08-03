@@ -2,22 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure fonts are loaded */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/* Test fonts to prevent Tailwind purge */
+.font-test { 
+  font-family: 'Inter', sans-serif; 
+  font-family: 'Playfair Display', serif; 
+}
+
 /* Global Styles */
 @layer base {
   body {
-    background: #000000;
+    background: #0a0a0a;
     color: #ffffff;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', sans-serif;
     scroll-behavior: smooth;
     min-height: 100vh;
   }
 
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
-  }
-
-  h4, h5, h6 {
-    font-family: 'Montserrat', sans-serif;
   }
 }
 
@@ -28,7 +33,7 @@ html {
 
 /* Ensure sections have proper spacing */
 .section-spacing {
-  scroll-margin-top: 4rem; /* Account for sticky navbar */
+  scroll-margin-top: 5rem; /* Account for taller sticky navbar */
 }
 
 /* Custom Components */

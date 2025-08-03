@@ -1,79 +1,49 @@
-import { useState } from 'react';
-import { HiMenu, HiX, HiBell, HiCog, HiUserCircle } from 'react-icons/hi';
-import logoImage from '../assets/images/clogo.png';
+import React, { useState } from 'react';
+import { FiMenu, FiX } from 'react-icons/fi';
+import cLogo from '../assets/images/clogo.png';
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const navLinks = [
+    { name: 'Home', href: '#home' },
+    { name: 'Offers', href: '#offers' },
+    { name: 'Upgrade', href: '#upgrade' },
+    { name: 'About', href: '#about' }
+  ];
+
   return (
-    <nav className="sticky top-0 z-50 bg-[#0f0f1a]/95 backdrop-blur-sm border-b border-gray-800/50">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Left: Logo */}
-          <div className="flex-shrink-0">
-            <div className="flex items-center space-x-3">
-              <img 
-                src={logoImage} 
-                alt="Claimify Logo" 
-                className="h-14 w-14 object-contain"
-              />
-              <h1 className="text-2xl font-bold text-white">Claimify</h1>
-            </div>
-          </div>
-          
-          {/* Center: Main Menu Links (Desktop) */}
-          <div className="hidden lg:flex items-center justify-center flex-1 ml-24">
-            <ul className="flex space-x-8 text-white font-medium">
-              <li>
-                <a href="#home" className="text-gray-300 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/10">
-                  Home
-                </a>
-              </li>
-              <li>
-                <a href="#offers" className="text-gray-300 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/10">
-                  Offers
-                </a>
-              </li>
-              <li>
-                <a href="#upgrade" className="text-gray-300 hover:text-white transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-white/10">
-                  Upgrade
-                </a>
-              </li>
-            </ul>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo */}
+          <div className="flex-shrink-0 flex items-center space-x-3">
+            <img 
+              src={cLogo} 
+              alt="Claimify Logo" 
+              className="h-16 w-auto filter brightness-0 invert"
+            />
+            <span className="font-heading text-2xl font-bold text-white">Claimify</span>
           </div>
 
-          {/* Right: Icons + Login Button (Desktop) */}
-          <div className="hidden lg:flex items-center space-x-4">
-            <button className="text-gray-300 hover:text-pink-400 transition-all duration-200 p-2 rounded-lg hover:bg-white/10 hover:scale-105" aria-label="notifications">
-              <HiBell size={22} />
-            </button>
-            <button className="text-gray-300 hover:text-purple-300 transition-all duration-200 p-2 rounded-lg hover:bg-white/10 hover:rotate-12 hover:scale-105" aria-label="settings">
-              <HiCog size={22} />
-            </button>
-            <button className="text-gray-300 hover:text-purple-300 transition-all duration-200 p-2 rounded-lg hover:bg-white/10 hover:scale-105" aria-label="profile">
-              <HiUserCircle size={22} />
-            </button>
-            <button className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 ml-2">
-              Login
-            </button>
-          </div>
-
-          {/* Medium screens: Menu links without icons */}
-          <div className="hidden md:flex lg:hidden items-center space-x-6">
-            <a href="#home" className="text-gray-300 hover:text-white transition-colors duration-200">
-              Home
-            </a>
-            <a href="#offers" className="text-gray-300 hover:text-white transition-colors duration-200">
-              Offers
-            </a>
-            <a href="#upgrade" className="text-gray-300 hover:text-white transition-colors duration-200">
-              Upgrade
-            </a>
-            <button className="bg-purple-500 hover:bg-purple-600 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-200">
+          {/* Desktop Navigation - Moved to the right side */}
+          <div className="hidden md:flex items-center space-x-8 ml-auto">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+              >
+                {link.name}
+              </a>
+            ))}
+            
+            {/* Login Button integrated in the nav */}
+            <button className="font-body bg-white text-black hover:bg-gray-100 px-6 py-2.5 rounded-lg transition-all duration-200 font-medium ml-4">
               Login
             </button>
           </div>
@@ -81,60 +51,35 @@ const Navbar = () => {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={toggleMenu}
-              className="text-gray-300 hover:text-white focus:outline-none focus:text-white transition-colors duration-200"
+              onClick={toggleMobileMenu}
+              className="text-gray-300 hover:text-white transition-colors"
             >
-              {isMenuOpen ? <HiX size={24} /> : <HiMenu size={24} />}
+              {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-[#0f0f1a] border-t border-gray-800/50">
-              <a
-                href="#home"
-                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/10"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </a>
-              <a
-                href="#offers"
-                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/10"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Offers
-              </a>
-              <a
-                href="#upgrade"
-                className="block px-3 py-2 text-gray-300 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/10"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Upgrade
-              </a>
-              
-              {/* Mobile Icons */}
-              <div className="flex items-center justify-center space-x-6 py-3 border-t border-gray-800/50 mt-3 pt-3">
-                <button className="text-gray-300 hover:text-pink-400 transition-all duration-200 p-2 hover:scale-105" aria-label="notifications">
-                  <HiBell size={22} />
-                </button>
-                <button className="text-gray-300 hover:text-purple-300 transition-all duration-200 p-2 hover:rotate-12 hover:scale-105" aria-label="settings">
-                  <HiCog size={22} />
-                </button>
-                <button className="text-gray-300 hover:text-purple-300 transition-all duration-200 p-2 hover:scale-105" aria-label="profile">
-                  <HiUserCircle size={22} />
-                </button>
-              </div>
-              
-              <button className="w-full mt-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold px-6 py-2 rounded-lg transition-all duration-200">
-                Login
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Mobile Navigation Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-gray-800/30">
+          <div className="px-4 pt-4 pb-4 space-y-3">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="font-body block px-3 py-2 text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.name}
+              </a>
+            ))}
+            <button className="font-body w-full mt-4 bg-white text-black hover:bg-gray-100 px-6 py-2.5 rounded-lg transition-all duration-200 font-medium">
+              Login
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

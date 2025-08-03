@@ -32,10 +32,10 @@ const BonusList = () => {
     <section id="offers" className="py-20 px-6 bg-[#0f0f1a]">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+          <h2 className="font-heading text-3xl md:text-5xl font-bold text-white mb-6">
             Featured Bonuses
           </h2>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+          <p className="font-body text-gray-300 text-lg max-w-2xl mx-auto">
             No deposits required. Start earning today with these exclusive offers.
           </p>
         </div>

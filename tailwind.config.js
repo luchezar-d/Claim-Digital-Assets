@@ -8,9 +8,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        display: ['Playfair Display', 'serif'],
-        body: ['Poppins', 'sans-serif'],
-        heading: ['Montserrat', 'sans-serif'],
+        heading: ['Playfair Display', 'serif'],
+        body: ['Inter', 'sans-serif'],
       },
       colors: {
         primary: {
