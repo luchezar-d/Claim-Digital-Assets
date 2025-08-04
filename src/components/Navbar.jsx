@@ -17,17 +17,17 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800/30">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent backdrop-blur-md border-b border-gray-800/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center space-x-3">
             <img 
               src={cLogo} 
-              alt="Claimify Logo" 
+              alt="ClaimHub Logo" 
               className="h-16 w-auto filter brightness-0 invert"
             />
-            <span className="font-heading text-2xl font-bold text-white">Claimify</span>
+            <span className="font-heading text-2xl font-bold text-white">ClaimHub</span>
           </div>
 
           {/* Desktop Navigation - Moved to the right side */}
@@ -63,20 +63,22 @@ const Navbar = () => {
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-gray-800/30">
-          <div className="px-4 pt-4 pb-4 space-y-3">
+          <div className="px-6 py-6 space-y-4">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                className="font-body block px-3 py-2 text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                className="font-body block text-center px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200 font-medium rounded-lg"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.name}
               </a>
             ))}
-            <button className="font-body w-full mt-4 bg-white text-black hover:bg-gray-100 px-6 py-2.5 rounded-lg transition-all duration-200 font-medium">
-              Login
-            </button>
+            <div className="pt-4 border-t border-gray-700/50">
+              <button className="font-body w-full bg-white text-black hover:bg-gray-100 px-6 py-3 rounded-lg transition-all duration-200 font-medium">
+                Login
+              </button>
+            </div>
           </div>
         </div>
       )}

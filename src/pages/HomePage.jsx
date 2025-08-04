@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import InformationalSection from '../components/InformationalSection';
+import FeaturesSection from '../components/FeaturesSection';
 import PackagesSection from '../components/PackagesSection';
 import TrustSection from '../components/TrustSection';
 import DisclaimerSection from '../components/DisclaimerSection';
@@ -24,6 +25,9 @@ const HomePage = () => {
       
       {/* Packages Section */}
       <PackagesSection />
+      
+      {/* Features Section */}
+      <FeaturesSection />
       
       {/* Trust Section */}
       <TrustSection />
