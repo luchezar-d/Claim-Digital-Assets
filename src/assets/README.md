@@ -1,6 +1,6 @@
 # Assets Folder
 
-This folder contains all static assets for the Claimify application.
+This folder contains all static assets for the ClaimHub application.
 
 ## Structure
 

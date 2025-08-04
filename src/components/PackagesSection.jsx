@@ -76,16 +76,16 @@ const PackagesSection = () => {
           ✨ One-time purchase • No subscription • Lifetime access
         </p>
         
-        {/* Cards Container - Taller and thinner cards */}
-        <div className="flex flex-col lg:flex-row gap-8 justify-center items-stretch overflow-visible relative z-10 max-w-6xl mx-auto pt-6">
+        {/* Cards Container - Responsive sizing */}
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 justify-center items-stretch overflow-visible relative z-10 max-w-6xl mx-auto pt-6">
           {packages.map((pkg, index) => (
             <div
               key={pkg.id}
               onClick={() => handleCardClick(pkg.route)}
               className={`
                 group relative cursor-pointer transition-transform duration-150 ease-out hover:z-20
-                rounded-3xl shadow-lg flex flex-col justify-between text-center
-                w-full max-w-[320px] min-h-[480px] mx-auto
+                rounded-2xl lg:rounded-3xl shadow-lg flex flex-col justify-between text-center
+                w-full max-w-[320px] lg:max-w-[320px] min-h-[380px] lg:min-h-[480px] mx-auto
                 ${pkg.highlight ? 'lg:scale-110 lg:hover:scale-[1.155]' : 'hover:scale-105'}
                 ${pkg.highlight 
                   ? 'bg-gradient-to-br from-purple-600/30 via-pink-500/30 to-purple-800/20 border-2 border-pink-400 shadow-pink-500/40 shadow-2xl' 
@@ -99,8 +99,8 @@ const PackagesSection = () => {
             >
               {/* Popular Badge for Highlighted Card */}
               {pkg.highlight && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-xl border-2 border-white/20">
+                <div className="absolute -top-3 lg:-top-4 left-1/2 transform -translate-x-1/2 z-20">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 lg:px-6 py-1.5 lg:py-2 rounded-full text-xs lg:text-sm font-bold shadow-xl border-2 border-white/20">
                     MOST POPULAR
                   </div>
                 </div>
@@ -108,16 +108,16 @@ const PackagesSection = () => {
 
               {/* Purple/Pink Glow Effect for Middle Card */}
               {pkg.highlight && (
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-purple-500/10 opacity-60 pointer-events-none"></div>
+                <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-purple-500/10 opacity-60 pointer-events-none"></div>
               )}
 
               {/* Card Content */}
-              <div className="relative z-10 p-8 h-full flex flex-col justify-between">
+              <div className="relative z-10 p-5 lg:p-8 h-full flex flex-col justify-between">
                 
                 {/* Icon & Badge */}
-                <div className="flex flex-col items-center mb-6">
+                <div className="flex flex-col items-center mb-4 lg:mb-6">
                   <div className={`
-                    text-5xl mb-4 p-4 rounded-full transition-transform duration-300
+                    text-3xl lg:text-5xl mb-3 lg:mb-4 p-3 lg:p-4 rounded-full transition-transform duration-300
                     group-hover:scale-110 group-hover:rotate-6
                     ${pkg.highlight ? 'bg-purple-500/20' :
                       pkg.color === 'green' ? 'bg-green-500/20' : 'bg-blue-500/20'}
@@ -125,7 +125,7 @@ const PackagesSection = () => {
                     {pkg.icon}
                   </div>
                   <span className={`
-                    text-sm rounded-full px-4 py-2 font-semibold mb-2
+                    text-xs lg:text-sm rounded-full px-3 lg:px-4 py-1.5 lg:py-2 font-semibold mb-2
                     ${pkg.highlight ? 'bg-white text-purple-600' :
                       pkg.color === 'green' ? 'bg-green-600 text-white' : 
                       'bg-blue-600 text-white'}
@@ -133,7 +133,7 @@ const PackagesSection = () => {
                     {pkg.reward}
                   </span>
                   <div className={`
-                    text-2xl font-bold
+                    text-xl lg:text-2xl font-bold
                     ${pkg.highlight ? 'text-white' :
                       pkg.color === 'green' ? 'text-green-400' : 'text-blue-400'}
                   `}>
@@ -142,19 +142,19 @@ const PackagesSection = () => {
                 </div>
 
                 {/* Title & Description */}
-                <div className="mb-6">
-                  <h3 className="font-heading text-xl font-bold mb-3">{pkg.title}</h3>
-                  <p className={`font-body text-sm leading-relaxed ${pkg.highlight ? 'text-white' : 'text-gray-400'}`}>
+                <div className="mb-4 lg:mb-6">
+                  <h3 className="font-heading text-lg lg:text-xl font-bold mb-2 lg:mb-3">{pkg.title}</h3>
+                  <p className={`font-body text-xs lg:text-sm leading-relaxed ${pkg.highlight ? 'text-white' : 'text-gray-400'}`}>
                     {pkg.description}
                   </p>
                 </div>
 
                 {/* Feature List */}
-                <ul className="text-sm space-y-3 mb-8 flex-grow text-left">
+                <ul className="text-xs lg:text-sm space-y-2 lg:space-y-3 mb-6 lg:mb-8 flex-grow text-left">
                   {pkg.features.map((feat, idx) => (
-                    <li key={idx} className="flex items-center gap-3 font-body">
+                    <li key={idx} className="flex items-center gap-2 lg:gap-3 font-body">
                       <span className={`
-                        text-lg font-bold flex-shrink-0
+                        text-sm lg:text-lg font-bold flex-shrink-0
                         ${pkg.highlight ? 'text-white' :
                           pkg.color === 'green' ? 'text-green-400' : 'text-blue-400'}
                       `}>
@@ -167,7 +167,7 @@ const PackagesSection = () => {
 
                 {/* CTA Button */}
                 <button className={`
-                  w-full py-2.5 rounded-lg font-semibold text-sm
+                  w-full py-2 lg:py-2.5 rounded-lg font-semibold text-xs lg:text-sm
                   transition-all duration-300 transform group-hover:scale-105 group-hover:-translate-y-1
                   shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-opacity-30
                   ${pkg.highlight
