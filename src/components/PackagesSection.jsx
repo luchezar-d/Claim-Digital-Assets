@@ -8,47 +8,56 @@ const PackagesSection = () => {
     {
       id: 'free',
       title: 'Free-Only Deals',
+      reward: 'Up to $50',
+      price: 'Free',
       icon: '🎁',
-      description: 'No deposit required. Just sign up and start earning.',
+      color: 'green',
+      description: 'Sign up. Earn instantly. No strings attached.',
       features: [
-        '100% Free',
+        '100% free signup',
         'Instant rewards',
-        'Top trusted platforms'
+        'No KYC needed',
+        'Trusted platforms'
       ],
-      buttonText: 'Explore Free Deals',
+      cta: 'Start Free',
       route: '/packages/free',
-      accentColor: 'green',
-      hoverClasses: 'hover:border-green-500 hover:shadow-green-500/20'
+      highlight: false
+    },
+    {
+      id: 'no-deposit',
+      title: 'No-Deposit Perks',
+      reward: 'Up to $500',
+      price: '€5.99',
+      icon: '💎',
+      color: 'purple',
+      description: 'Earn real assets like crypto or stocks — no deposit required.',
+      features: [
+        'Revolut crypto rewards',
+        'Trading212 free stock',
+        'No payment upfront',
+        'Verified offers only'
+      ],
+      cta: 'View Perks',
+      route: '/packages/no-deposit',
+      highlight: true
     },
     {
       id: 'deposit',
       title: 'Verified Deposit Bonuses',
-      icon: '💵',
-      description: 'Higher-value rewards with a small deposit.',
+      reward: 'Up to $300',
+      price: '€9.99',
+      icon: '🏦',
+      color: 'blue',
+      description: 'Earn high-value rewards with transparent deposit offers.',
       features: [
-        'Up to $100+ in bonuses',
-        'Verified platforms only',
-        'Deposit transparency'
+        'Binance deposit bonuses',
+        'eToro trading perks',
+        'Transparent terms',
+        'Real cash or crypto'
       ],
-      buttonText: 'View Bonuses',
+      cta: 'Explore Bonuses',
       route: '/packages/deposit',
-      accentColor: 'blue',
-      hoverClasses: 'hover:border-blue-500 hover:shadow-blue-500/20 hover:bg-gradient-to-br hover:from-blue-900/10 hover:to-purple-900/10'
-    },
-    {
-      id: 'casino',
-      title: 'Casino & Misc Offers',
-      icon: '🎰',
-      description: 'Gaming & special offers with additional perks.',
-      features: [
-        'Fast payouts',
-        'Game-related bonuses',
-        'Mixed requirements'
-      ],
-      buttonText: 'Explore Offers',
-      route: '/packages/casino',
-      accentColor: 'pink',
-      hoverClasses: 'hover:border-pink-500 hover:shadow-pink-500/20 hover:ring-2 hover:ring-pink-500/30'
+      highlight: false
     }
   ];
 
@@ -56,116 +65,125 @@ const PackagesSection = () => {
     navigate(route);
   };
 
-  const getIconCircleClasses = (accentColor) => {
-    const colorMap = {
-      green: 'bg-green-500/20 border-green-500/30 text-green-400 shadow-green-500/30',
-      blue: 'bg-blue-500/20 border-blue-500/30 text-blue-400 shadow-blue-500/30',
-      pink: 'bg-pink-500/20 border-pink-500/30 text-pink-400 shadow-pink-500/30'
-    };
-    return colorMap[accentColor] || colorMap.green;
-  };
-
-  const getButtonClasses = (accentColor) => {
-    const colorMap = {
-      green: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
-      blue: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:ring-blue-500',
-      pink: 'bg-pink-600 hover:bg-pink-700 focus:ring-pink-500'
-    };
-    return colorMap[accentColor] || colorMap.green;
-  };
-
   return (
-    <section id="packages" className="py-20 bg-gradient-to-b from-gray-900 to-black">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative z-10 py-20 px-6 bg-gradient-to-b from-[#0e0e15] to-[#0b0b10] text-white overflow-visible">
+      <div className="container mx-auto">
+        <h2 className="font-heading text-4xl font-bold text-center mb-4">Choose Your Package</h2>
+        <p className="font-body text-center mb-4 text-gray-400">
+          Explore verified signup rewards, crypto bonuses, fintech perks & more.
+        </p>
+        <p className="font-body text-center mb-12 text-sm text-purple-400 font-medium">
+          ✨ One-time purchase • No subscription • Lifetime access
+        </p>
         
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-            Choose Your Package
-          </h2>
-          <p className="font-body text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Find the perfect deals for your needs. All packages are curated and verified by our team.
-          </p>
-        </div>
-
-        {/* Package Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {packages.map((pkg) => (
+        {/* Cards Container - Taller and thinner cards */}
+        <div className="flex flex-col lg:flex-row gap-8 justify-center items-stretch overflow-visible relative z-10 max-w-6xl mx-auto pt-6">
+          {packages.map((pkg, index) => (
             <div
               key={pkg.id}
               onClick={() => handleCardClick(pkg.route)}
               className={`
-                group cursor-pointer min-h-[400px] flex flex-col
-                bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8
-                transition-all duration-300 hover:scale-105 hover:shadow-xl
-                ${pkg.hoverClasses}
+                group relative cursor-pointer transition-transform duration-150 ease-out hover:z-20
+                rounded-3xl shadow-lg flex flex-col justify-between text-center
+                w-full max-w-[320px] min-h-[480px] mx-auto
+                ${pkg.highlight ? 'lg:scale-110 lg:hover:scale-[1.155]' : 'hover:scale-105'}
+                ${pkg.highlight 
+                  ? 'bg-gradient-to-br from-purple-600/30 via-pink-500/30 to-purple-800/20 border-2 border-pink-400 shadow-pink-500/40 shadow-2xl' 
+                  : `bg-[#14141f] border-2 ${pkg.color === 'green' ? 'border-green-600/60' : 'border-blue-600/60'} shadow-xl`
+                }
+                hover:shadow-2xl
+                ${pkg.color === 'green' ? 'hover:border-green-400 hover:shadow-green-500/30' : 
+                  pkg.color === 'blue' ? 'hover:border-blue-400 hover:shadow-blue-500/30' :
+                  pkg.highlight ? 'hover:border-pink-300 hover:shadow-pink-500/50' : ''}
               `}
             >
-              {/* Icon */}
-              <div className="flex justify-center mb-6">
-                <div className={`
-                  w-20 h-20 rounded-full border-2 flex items-center justify-center text-3xl
-                  shadow-lg transition-all duration-300 group-hover:scale-110
-                  ${getIconCircleClasses(pkg.accentColor)}
-                `}>
-                  {pkg.icon}
+              {/* Popular Badge for Highlighted Card */}
+              {pkg.highlight && (
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-xl border-2 border-white/20">
+                    MOST POPULAR
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Title */}
-              <h3 className="font-heading text-2xl font-bold text-white mb-4 text-center">
-                {pkg.title}
-              </h3>
+              {/* Purple/Pink Glow Effect for Middle Card */}
+              {pkg.highlight && (
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-purple-500/10 opacity-60 pointer-events-none"></div>
+              )}
 
-              {/* Description */}
-              <p className="font-body text-gray-300 text-center mb-6 leading-relaxed">
-                {pkg.description}
-              </p>
+              {/* Card Content */}
+              <div className="relative z-10 p-8 h-full flex flex-col justify-between">
+                
+                {/* Icon & Badge */}
+                <div className="flex flex-col items-center mb-6">
+                  <div className={`
+                    text-5xl mb-4 p-4 rounded-full transition-transform duration-300
+                    group-hover:scale-110 group-hover:rotate-6
+                    ${pkg.highlight ? 'bg-purple-500/20' :
+                      pkg.color === 'green' ? 'bg-green-500/20' : 'bg-blue-500/20'}
+                  `}>
+                    {pkg.icon}
+                  </div>
+                  <span className={`
+                    text-sm rounded-full px-4 py-2 font-semibold mb-2
+                    ${pkg.highlight ? 'bg-white text-purple-600' :
+                      pkg.color === 'green' ? 'bg-green-600 text-white' : 
+                      'bg-blue-600 text-white'}
+                  `}>
+                    {pkg.reward}
+                  </span>
+                  <div className={`
+                    text-2xl font-bold
+                    ${pkg.highlight ? 'text-white' :
+                      pkg.color === 'green' ? 'text-green-400' : 'text-blue-400'}
+                  `}>
+                    {pkg.price}
+                  </div>
+                </div>
 
-              {/* Features List */}
-              <div className="flex-1 mb-8">
-                <ul className="space-y-3">
-                  {pkg.features.map((feature, index) => (
-                    <li key={index} className="font-body text-gray-300 flex items-center">
-                      <svg 
-                        className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" 
-                        fill="currentColor" 
-                        viewBox="0 0 20 20"
-                      >
-                        <path 
-                          fillRule="evenodd" 
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                          clipRule="evenodd" 
-                        />
-                      </svg>
-                      {feature}
+                {/* Title & Description */}
+                <div className="mb-6">
+                  <h3 className="font-heading text-xl font-bold mb-3">{pkg.title}</h3>
+                  <p className={`font-body text-sm leading-relaxed ${pkg.highlight ? 'text-white' : 'text-gray-400'}`}>
+                    {pkg.description}
+                  </p>
+                </div>
+
+                {/* Feature List */}
+                <ul className="text-sm space-y-3 mb-8 flex-grow text-left">
+                  {pkg.features.map((feat, idx) => (
+                    <li key={idx} className="flex items-center gap-3 font-body">
+                      <span className={`
+                        text-lg font-bold flex-shrink-0
+                        ${pkg.highlight ? 'text-white' :
+                          pkg.color === 'green' ? 'text-green-400' : 'text-blue-400'}
+                      `}>
+                        ✔
+                      </span>
+                      <span className={pkg.highlight ? 'text-white' : 'text-gray-300'}>{feat}</span>
                     </li>
                   ))}
                 </ul>
-              </div>
 
-              {/* Action Button */}
-              <button 
-                className={`
-                  font-body w-full py-3 px-6 rounded-lg text-white font-semibold
-                  transition-all duration-300 transform group-hover:scale-105
-                  focus:outline-none focus:ring-4 focus:ring-opacity-50 shadow-lg
-                  ${getButtonClasses(pkg.accentColor)}
-                `}
-              >
-                {pkg.buttonText}
-              </button>
+                {/* CTA Button */}
+                <button className={`
+                  w-full py-2.5 rounded-lg font-semibold text-sm
+                  transition-all duration-300 transform group-hover:scale-105 group-hover:-translate-y-1
+                  shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-opacity-30
+                  ${pkg.highlight
+                    ? 'bg-white text-purple-600 hover:bg-pink-100 focus:ring-purple-500'
+                    : pkg.color === 'green' 
+                    ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500' 
+                    : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+                  }
+                `}>
+                  {pkg.cta}
+                </button>
+
+              </div>
             </div>
           ))}
         </div>
-
-        {/* Bottom CTA */}
-        <div className="text-center mt-16">
-          <p className="font-body text-gray-400 text-sm">
-            Can't decide? Start with our free deals and upgrade anytime.
-          </p>
-        </div>
-
       </div>
     </section>
   );
