@@ -16,24 +16,22 @@ const HeroSection = () => {
         {/* Left Column - Text Content */}
         <div className="flex-1 max-w-lg space-y-6 text-center md:text-left">
           <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight animate-fade-in-up">
-            Discover bonuses that give you 
+            Unlock free crypto, stocks & perks — 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              {" "}free assets
+              {" "}no fluff, just real bonuses.
             </span>
-            {" "}— crypto, stocks, and more.
           </h1>
           
           <p className="font-body text-lg md:text-xl text-gray-300 leading-relaxed animate-fade-in-up animation-delay-200">
-            Some offers require a deposit, others don't. We bring them all together in one easy-to-navigate place.
+            Start with trusted platforms like Revolut, Coinbase, Robinhood & more.
           </p>
           
           <div className="animate-fade-in-up animation-delay-400">
             <button 
-              onClick={() => scrollToSection('offers')}
-              className="font-body relative bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 text-lg group overflow-hidden"
+              onClick={() => scrollToSection('packages')}
+              className="font-body bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
             >
-              <span className="relative z-10">Go To Packages</span>
-              <div className="absolute inset-0 bg-purple-400 opacity-0 group-hover:opacity-30 blur-xl transition-all duration-300 group-hover:scale-110"></div>
+              Get Started
             </button>
           </div>
         </div>
