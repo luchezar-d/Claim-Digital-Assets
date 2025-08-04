@@ -1,13 +1,17 @@
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
-import BonusList from '../components/BonusList';
-import AboutSection from '../components/AboutSection';
-import CallToAction from '../components/CallToAction';
+import InformationalSection from '../components/InformationalSection';
+import PackagesSection from '../components/PackagesSection';
+import TrustSection from '../components/TrustSection';
+import DisclaimerSection from '../components/DisclaimerSection';
 import Footer from '../components/Footer';
 
 const HomePage = () => {
   return (
     <div className="bg-[#0a0a0a] text-white">
+      {/* Hidden div to prevent Tailwind from purging font classes */}
+      <div className="hidden font-heading font-body"></div>
+      
       <Navbar />
       
       {/* Hero Section - Full viewport height minus navbar */}
@@ -15,14 +19,17 @@ const HomePage = () => {
         <HeroSection />
       </section>
       
-      {/* Featured Bonuses */}
-      <BonusList />
+      {/* Informational Section */}
+      <InformationalSection />
       
-      {/* About Claimify */}
-      <AboutSection />
+      {/* Packages Section */}
+      <PackagesSection />
       
-      {/* Call to Action */}
-      <CallToAction />
+      {/* Trust Section */}
+      <TrustSection />
+      
+      {/* Disclaimer Section */}
+      <DisclaimerSection />
       
       {/* Footer */}
       <Footer />

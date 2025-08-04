@@ -1,50 +1,56 @@
 import { FiTwitter, FiMail } from 'react-icons/fi';
 import { SiDiscord } from 'react-icons/si';
+import cLogo from '../assets/images/clogo.png';
 
 const Footer = () => {
+  const navLinks = [
+    { name: 'Home', href: '#home' },
+    { name: 'Offers', href: '#packages' },
+    { name: 'Upgrade', href: '#upgrade' },
+    { name: 'About', href: '#about' },
+    { name: 'Contact', href: '#contact' }
+  ];
+
   return (
-    <footer className="py-16 px-6 bg-[#0f0f1a] border-t border-gray-800/50">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+    <footer className="py-16 px-6 bg-[#0a0a0a] border-t border-gray-800/50">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-between items-center space-y-8 md:space-y-0">
           
-          {/* Left Column - Copyright */}
-          <div className="text-center md:text-left">
-            <p className="font-body text-gray-400">
-              © 2025 Claimify. All rights reserved.
-            </p>
+          {/* Left - Logo and Copyright */}
+          <div className="flex items-center space-x-3">
+            <img 
+              src={cLogo} 
+              alt="Claimify Logo" 
+              className="h-8 w-auto filter brightness-0 invert"
+            />
+            <span className="font-heading text-lg font-bold text-white">Claimify</span>
+            <span className="font-body text-gray-400 ml-4">© 2025</span>
           </div>
           
-          {/* Center Column - Navigation Links */}
-          <div className="text-center">
-            <div className="flex flex-wrap justify-center space-x-6 text-sm">
-              <a href="#home" className="font-body text-gray-400 hover:text-white transition-colors duration-200">
-                Home
-              </a>
-              <a href="#offers" className="font-body text-gray-400 hover:text-white transition-colors duration-200">
-                Offers
-              </a>
-              <a href="#about" className="font-body text-gray-400 hover:text-white transition-colors duration-200">
-                About
-              </a>
-              <a href="#upgrade" className="font-body text-gray-400 hover:text-white transition-colors duration-200">
-                Upgrade
-              </a>
-              <a href="#terms" className="font-body text-gray-400 hover:text-white transition-colors duration-200">
-                Terms
-              </a>
+          {/* Right - Navigation and Social */}
+          <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
+            {/* Navigation Links */}
+            <div className="flex flex-wrap justify-center space-x-6">
+              {navLinks.map((link) => (
+                <a 
+                  key={link.name}
+                  href={link.href} 
+                  className="font-body text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                >
+                  {link.name}
+                </a>
+              ))}
             </div>
-          </div>
-          
-          {/* Right Column - Social Icons */}
-          <div className="text-center md:text-right">
-            <div className="flex justify-center md:justify-end space-x-4">
+            
+            {/* Social Icons */}
+            <div className="flex space-x-4">
               <a 
                 href="https://twitter.com/claimify" 
                 className="text-gray-400 hover:text-blue-400 transition-colors duration-200 hover:scale-110 transform"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <FiTwitter size={20} />
+                <FiTwitter size={18} />
               </a>
               <a 
                 href="https://discord.gg/claimify" 
@@ -52,13 +58,13 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <SiDiscord size={20} />
+                <SiDiscord size={18} />
               </a>
               <a 
                 href="mailto:hello@claimify.com" 
                 className="text-gray-400 hover:text-green-400 transition-colors duration-200 hover:scale-110 transform"
               >
-                <FiMail size={20} />
+                <FiMail size={18} />
               </a>
             </div>
           </div>
