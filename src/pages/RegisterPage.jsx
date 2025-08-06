@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiArrowLeft, FiCheck } from 'react-icons/fi';
 import { authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import '@lottiefiles/lottie-player';
+import { Player } from '@lottiefiles/react-lottie-player';
 import cLogo from '../assets/images/clogo.png';
+import websitesAnimation from '../assets/animations/websites.json';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -131,8 +132,8 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen bg-black flex flex-col md:flex-row items-center justify-center px-6">
       
-      {/* Left Section - Reduced width */}
-      <div className="w-full md:w-2/5 flex flex-col items-center justify-center text-white text-center py-8 px-4 md:fixed md:left-0 md:top-0 md:h-screen">
+      {/* Left Section - 50% width */}
+      <div className="w-full md:w-[50%] flex flex-col items-center justify-center text-white text-center py-8 px-4 md:fixed md:left-0 md:top-0 md:h-screen">
         {/* Back to Home Button */}
         <div className="absolute top-6 left-6 md:top-8 md:left-8">
           <Link 
@@ -145,14 +146,23 @@ const RegisterPage = () => {
         </div>
 
         <div className="flex flex-col items-center">
-          <lottie-player
-            src="/src/assets/animations/websites.json"
-            background="transparent"
-            speed="1"
-            loop
+          <Player
             autoplay
-            style={{ width: '450px', height: '450px' }}
-          ></lottie-player>
+            loop
+            src={websitesAnimation}
+            style={{ 
+              width: '450px', 
+              height: '450px'
+            }}
+            fallback={
+              <div className="w-[450px] h-[450px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl flex items-center justify-center border border-purple-500/20">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">🌐💼</div>
+                  <p className="text-gray-400">Websites Animation</p>
+                </div>
+              </div>
+            }
+          />
           <h1 className="text-2xl font-semibold mt-3">Welcome to Claimify</h1>
           <p className="text-base mt-2 max-w-xs leading-relaxed">
             Streamline your claims process with<br />intelligent automation and secure management.
@@ -160,8 +170,8 @@ const RegisterPage = () => {
         </div>
       </div>
 
-      {/* Right Section - Increased width */}
-      <div className="w-full md:w-3/5 md:ml-auto flex items-center justify-center py-10">
+      {/* Right Section - 55% width */}
+      <div className="w-full flex items-center justify-center py-10 md:ml-auto md:w-[55%]">
         <div className="bg-zinc-900 rounded-xl shadow-md p-8 w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
