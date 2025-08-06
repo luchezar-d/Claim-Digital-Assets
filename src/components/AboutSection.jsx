@@ -7,7 +7,7 @@ const AboutSection = () => {
         </h2>
         
         <p className="font-body text-lg md:text-xl text-gray-300 leading-relaxed mb-8 max-w-3xl mx-auto animate-fade-in-up">
-          ClaimHub aggregates the best signup bonuses from leading fintech platforms into one convenient location. 
+          Claim Nest aggregates the best signup bonuses from leading fintech platforms into one convenient location. 
           Instead of hunting across dozens of websites, we track real-time offers from Revolut, Coinbase, Robinhood, 
           and 50+ other platforms so you can maximize your rewards effortlessly.
         </p>

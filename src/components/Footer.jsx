@@ -15,10 +15,10 @@ const Footer = () => {
             <div className="flex items-center space-x-3">
               <img 
                 src={cLogo} 
-                alt="ClaimHub Logo" 
+                alt="Claim Nest Logo" 
                 className="h-8 w-auto filter brightness-0 invert"
               />
-              <span className="font-heading text-xl font-bold text-white">ClaimHub</span>
+              <span className="font-heading text-xl font-bold text-white">Claim Nest</span>
             </div>
             <p className="font-body text-gray-400 text-sm text-center md:text-left">
               Your gateway to exclusive signup rewards
@@ -30,7 +30,7 @@ const Footer = () => {
             <span className="font-body text-gray-300 text-sm font-medium">Connect with us</span>
             <div className="flex space-x-5">
               <a 
-                href="https://twitter.com/claimhub" 
+                href="https://twitter.com/claimnest" 
                 className="text-gray-400 hover:text-blue-400 transition-all duration-200 hover:scale-110 transform p-2 rounded-full hover:bg-blue-400/10"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -39,7 +39,7 @@ const Footer = () => {
                 <FiTwitter size={20} />
               </a>
               <a 
-                href="https://discord.gg/claimhub" 
+                href="https://discord.gg/claimnest" 
                 className="text-gray-400 hover:text-indigo-400 transition-all duration-200 hover:scale-110 transform p-2 rounded-full hover:bg-indigo-400/10"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -48,7 +48,7 @@ const Footer = () => {
                 <SiDiscord size={20} />
               </a>
               <a 
-                href="mailto:hello@claimhub.io" 
+                href="mailto:hello@claimnest.io" 
                 className="text-gray-400 hover:text-green-400 transition-all duration-200 hover:scale-110 transform p-2 rounded-full hover:bg-green-400/10"
                 aria-label="Email us"
               >
@@ -63,7 +63,7 @@ const Footer = () => {
         <div className="pt-6 border-t border-gray-800/30">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
             <p className="font-body text-gray-500 text-sm">
-              © 2025 ClaimHub. All rights reserved.
+              © 2025 Claim Nest. All rights reserved.
             </p>
             <div className="flex space-x-6 text-sm">
               <a href="#privacy" className="font-body text-gray-500 hover:text-gray-300 transition-colors duration-200">
