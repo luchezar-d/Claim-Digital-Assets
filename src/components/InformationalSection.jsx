@@ -7,7 +7,7 @@ const InformationalSection = () => {
         </h2>
         
         <p className="font-body text-lg md:text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
-          ClaimHub helps you discover the top financial sign-up bonuses across crypto, fintech, and trading apps — all in one place. 
+          Claim Nest helps you discover the top financial sign-up bonuses across crypto, fintech, and trading apps — all in one place. 
           Some deals are totally free, others may require a deposit or quick KYC check. We tell you everything up front.
         </p>
       </div>
