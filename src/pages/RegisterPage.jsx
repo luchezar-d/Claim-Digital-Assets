@@ -20,6 +20,7 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -74,6 +75,11 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Prevent multiple submissions
+    if (isLoading) {
+      return;
+    }
+    
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -91,11 +97,16 @@ const RegisterPage = () => {
       });
       
       if (response.data.success) {
+        // Show success message first
+        setIsSuccess(true);
+        
         // Use auth context to login
         login(response.data.data.user, response.data.data.token);
         
-        // Redirect to dashboard
-        navigate('/dashboard');
+        // Small delay to show success state, then redirect
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -108,6 +119,8 @@ const RegisterPage = () => {
         setErrors(backendErrors);
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
+      } else if (error.response?.data?.error) {
+        setErrors({ general: error.response.data.error });
       } else {
         setErrors({ general: 'An error occurred during registration. Please try again.' });
       }
@@ -190,6 +203,15 @@ const RegisterPage = () => {
           {errors.general && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
               <p className="text-red-400 text-sm">{errors.general}</p>
+            </div>
+          )}
+
+          {isSuccess && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <FiCheck className="h-5 w-5 text-green-400" />
+                <p className="text-green-400 text-sm">Account created successfully! Redirecting to dashboard...</p>
+              </div>
             </div>
           )}
 
@@ -378,10 +400,19 @@ const RegisterPage = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                disabled={isLoading || isSuccess}
+                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
+                  isSuccess 
+                    ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' 
+                    : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+                }`}
               >
-                {isLoading ? (
+                {isSuccess ? (
+                  <div className="flex items-center space-x-2">
+                    <FiCheck className="h-4 w-4" />
+                    <span>Account created!</span>
+                  </div>
+                ) : isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     <span>Creating account...</span>

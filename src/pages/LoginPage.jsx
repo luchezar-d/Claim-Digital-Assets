@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiArrowLeft } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiArrowLeft, FiCheck } from 'react-icons/fi';
 import { authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Player } from '@lottiefiles/react-lottie-player';
@@ -20,6 +20,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -32,6 +33,12 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (isLoading) {
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
 
@@ -39,11 +46,16 @@ const LoginPage = () => {
       const response = await authAPI.login(formData);
       
       if (response.data.success) {
+        // Show success message first
+        setIsSuccess(true);
+        
         // Use auth context to login
         login(response.data.data.user, response.data.data.token);
         
-        // Redirect to intended page or dashboard
-        navigate(from, { replace: true });
+        // Small delay to show success state, then redirect
+        setTimeout(() => {
+          navigate(from, { replace: true });
+        }, 1500);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -118,6 +130,15 @@ const LoginPage = () => {
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
               <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          {isSuccess && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <FiCheck className="h-5 w-5 text-green-400" />
+                <p className="text-green-400 text-sm">Login successful! Redirecting...</p>
+              </div>
             </div>
           )}
 
@@ -200,10 +221,19 @@ const LoginPage = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              disabled={isLoading || isSuccess}
+              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
+                isSuccess 
+                  ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' 
+                  : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+              }`}
             >
-              {isLoading ? (
+              {isSuccess ? (
+                <div className="flex items-center space-x-2">
+                  <FiCheck className="h-4 w-4" />
+                  <span>Signed in!</span>
+                </div>
+              ) : isLoading ? (
                 <div className="flex items-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   <span>Signing in...</span>

@@ -1,80 +1,52 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-
-// Load environment variables
-dotenv.config();
-
-// Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user');
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import 'dotenv/config';
+import { connectMongo } from './src/lib/db.js';
+import authRoutes from './src/routes/auth.js';
 
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://your-frontend-domain.com' : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Claim Nest Auth Server is running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    success: false, 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
-  });
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ 
-    success: false, 
-    message: 'Route not found' 
-  });
+  res.status(404).json({ error: 'Route not found' });
 });
 
-// MongoDB connection
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
-  }
-};
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 // Start server
-const PORT = process.env.PORT || 5000;
+async function startServer() {
+  try {
+    // Connect to MongoDB
+    await connectMongo();
+    console.log('✅ MongoDB connected');
 
-const startServer = async () => {
-  await connectDB();
-  
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
-  });
-};
+    // Start HTTP server
+    app.listen(PORT, () => {
+      console.log(`🚀 API on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
 
 startServer();
-
-module.exports = app;

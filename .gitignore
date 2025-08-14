@@ -199,3 +199,39 @@ Temporary Items
 
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
+
+# Environment variables
+.env
+/backend/.env
+
+# Database files and test data
+*.db
+*.sqlite
+*.sqlite3
+test.db
+test.sqlite
+/backend/test.db
+
+# Test and temporary files
+test-*.mjs
+temp/
+tmp/
+*.tmp
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+*.swp
+*.swo
+*~
+
+# Log files
+logs/
+*.log.*
+backend/logs/
+
+# Coverage and test output
+coverage/
+test-results/
+.nyc_output/
