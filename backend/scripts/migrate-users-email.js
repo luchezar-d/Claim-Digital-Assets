@@ -12,7 +12,7 @@ async function migrateUsers() {
     }
 
     console.log('🔗 Connecting to MongoDB...');
-    
+
     await mongoose.connect(MONGODB_URI, {
       dbName: DB_NAME,
       serverSelectionTimeoutMS: 10000,
@@ -20,7 +20,7 @@ async function migrateUsers() {
     });
 
     console.log('✅ Connected to database');
-    
+
     // Find all users
     const users = await User.find({});
     console.log(`📊 Found ${users.length} users to migrate`);
@@ -31,7 +31,7 @@ async function migrateUsers() {
     for (const user of users) {
       const originalEmail = user.email;
       const lowercaseEmail = originalEmail.toLowerCase();
-      
+
       if (originalEmail !== lowercaseEmail) {
         user.email = lowercaseEmail;
         await user.save();
@@ -45,7 +45,6 @@ async function migrateUsers() {
     await User.syncIndexes();
 
     console.log(`✅ Migration complete! Updated ${updatedCount} user email(s)`);
-    
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     process.exit(1);

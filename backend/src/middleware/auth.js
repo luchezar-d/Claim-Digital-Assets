@@ -7,33 +7,30 @@ if (!JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
 
-export function requireAuth(req, res, next) {
-  try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authorization header required' });
-    }
+export const requireAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
-    
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      message: 'Access token required',
+    });
+  }
+
+  const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+  try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    
-    // Set user info on request object
     req.user = {
       _id: decoded.sub,
       roles: decoded.roles,
-      email: decoded.email
+      email: decoded.email,
     };
-    
     next();
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
-    }
-    return res.status(401).json({ error: 'Authentication failed' });
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired token',
+    });
   }
-}
+};

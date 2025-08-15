@@ -7,25 +7,25 @@ const BonusList = () => {
   const bonuses = [
     {
       icon: FiTrendingUp,
-      title: "Revolut",
-      description: "Sign up & complete a short crypto lesson",
-      buttonLabel: "Get free crypto",
-      buttonLink: "https://revolut.com"
+      title: 'Revolut',
+      description: 'Sign up & complete a short crypto lesson',
+      buttonLabel: 'Get free crypto',
+      buttonLink: 'https://revolut.com',
     },
     {
       icon: FaBitcoin,
-      title: "Coinbase",
-      description: "Open an account & verify your identity",
-      buttonLabel: "Earn $10 in BTC",
-      buttonLink: "https://coinbase.com"
+      title: 'Coinbase',
+      description: 'Open an account & verify your identity',
+      buttonLabel: 'Earn $10 in BTC',
+      buttonLink: 'https://coinbase.com',
     },
     {
       icon: MdShowChart,
-      title: "Robinhood",
-      description: "Complete KYC (no deposit required)",
-      buttonLabel: "Get free stock",
-      buttonLink: "https://robinhood.com"
-    }
+      title: 'Robinhood',
+      description: 'Complete KYC (no deposit required)',
+      buttonLabel: 'Get free stock',
+      buttonLink: 'https://robinhood.com',
+    },
   ];
 
   return (
@@ -39,7 +39,7 @@ const BonusList = () => {
             No deposits required. Start earning today with these exclusive offers.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {bonuses.map((bonus, index) => (
             <BonusCard

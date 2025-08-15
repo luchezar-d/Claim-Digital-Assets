@@ -5,19 +5,19 @@ const authMiddleware = async (req, res, next) => {
   try {
     // Get token from header
     const authHeader = req.header('Authorization');
-    
+
     if (!authHeader) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'No token provided, authorization denied' 
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided, authorization denied',
       });
     }
 
     // Check if token starts with 'Bearer '
     if (!authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Invalid token format. Use Bearer <token>' 
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token format. Use Bearer <token>',
       });
     }
 
@@ -25,9 +25,9 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.substring(7);
 
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'No token provided, authorization denied' 
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided, authorization denied',
       });
     }
 
@@ -36,44 +36,43 @@ const authMiddleware = async (req, res, next) => {
 
     // Get user from database
     const user = await User.findById(decoded.userId).select('-passwordHash');
-    
+
     if (!user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Token is valid but user not found' 
+      return res.status(401).json({
+        success: false,
+        message: 'Token is valid but user not found',
       });
     }
 
     if (!user.isActive) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'User account is deactivated' 
+      return res.status(401).json({
+        success: false,
+        message: 'User account is deactivated',
       });
     }
 
     // Add user to request object
     req.user = user;
     next();
-    
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Invalid token' 
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token',
       });
     }
-    
+
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Token has expired' 
+      return res.status(401).json({
+        success: false,
+        message: 'Token has expired',
       });
     }
 
     console.error('Auth middleware error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error during authentication' 
+    res.status(500).json({
+      success: false,
+      message: 'Server error during authentication',
     });
   }
 };

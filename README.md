@@ -1,4 +1,4 @@
-# Claim Nest - Authentication Integration
+# Claimify - Full-Stack Authentication Platform
 
 A modern, full-stack fintech rewards aggregator with complete authentication system.
 
@@ -7,45 +7,71 @@ A modern, full-stack fintech rewards aggregator with complete authentication sys
 **Frontend**: React + Vite + Tailwind CSS  
 **Backend**: Node.js + Express + MongoDB  
 **Authentication**: JWT-based with protected routes  
-**Database**: MongoDB Atlas  
+**Database**: MongoDB
 
-## Features
+## Quick Start
 
-### Frontend Features
-- ✅ Modern, responsive design with Tailwind CSS
-- ✅ React Router for navigation
-- ✅ Authentication context for global state management
-- ✅ Protected routes with automatic redirects
-- ✅ Login and Registration forms with validation
-- ✅ User dashboard with profile information
-- ✅ JWT token management
-- ✅ Responsive navbar with auth status
+### Environment Setup
 
-### Backend Features
-- ✅ Express.js REST API
-- ✅ MongoDB integration with Mongoose
-- ✅ JWT authentication middleware
-- ✅ Password hashing with bcrypt
-- ✅ Input validation and sanitization
-- ✅ User registration and login endpoints
-- ✅ Protected user profile routes
-- ✅ Password change and account management
-- ✅ Health check endpoint
+1. Copy environment files:
+   ```bash
+   # Backend environment
+   cp backend/.env.example backend/.env
+   
+   # Frontend environment (optional)
+   cp .env.example .env
+   ```
 
-## Project Structure
+2. Update `backend/.env` with your values:
+   ```bash
+   MONGODB_URI=mongodb://localhost:27017
+   DB_NAME=claimify_dev
+   JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+   PORT=3001
+   ```
 
+3. Update `.env` for frontend (optional):
+   ```bash
+   VITE_API_URL=http://localhost:3001/api
+   VITE_DEBUG=false
+   ```
+
+### Installation & Running
+
+1. Install dependencies:
+   ```bash
+   # Frontend
+   npm install
+   
+   # Backend
+   cd backend && npm install
+   ```
+
+2. Start backend:
+   ```bash
+   cd backend && npm run dev
+   ```
+
+3. Start frontend:
+   ```bash
+   npm run dev
+   ```
+
+## Development Commands
+
+```bash
+# Format code
+npm run format
+
+# Lint code
+npm run lint
+
+# Test database connection
+cd backend && npm run db:test
+
+# Migrate user emails (if needed)
+cd backend && npm run migrate:users
 ```
-Claimify/
-├── src/                          # Frontend source
-│   ├── components/              # React components
-│   │   ├── Navbar.jsx          # Navigation with auth status
-│   │   ├── Footer.jsx          # Site footer
-│   │   ├── PackagesSection.jsx # Pricing packages
-│   │   ├── FeaturesSection.jsx # Features display
-│   │   └── ProtectedRoute.jsx  # Route protection
-│   ├── pages/                  # Page components
-│   │   ├── HomePage.jsx        # Landing page
-│   │   ├── LoginPage.jsx       # Login form
 │   │   ├── RegisterPage.jsx    # Registration form
 │   │   └── DashboardPage.jsx   # User dashboard
 │   ├── contexts/               # React contexts
@@ -69,6 +95,7 @@ Claimify/
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - MongoDB Atlas account
 - Git
@@ -76,16 +103,19 @@ Claimify/
 ### Backend Setup
 
 1. **Navigate to backend directory:**
+
    ```bash
    cd backend
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Environment variables** (already configured):
+
    ```env
    MONGODB_URI=mongodb+srv://luchezarddimitrov:ylnpYBVa1Skwr8mM@cluster0.etep2gv.mongodb.net/claimhub_auth?retryWrites=true&w=majority&appName=Cluster0
    JWT_SECRET=claim-nest-super-secret-jwt-key-2025-change-this-in-production
@@ -94,6 +124,7 @@ Claimify/
    ```
 
 4. **Start the backend server:**
+
    ```bash
    npm start
    ```
@@ -103,16 +134,19 @@ Claimify/
 ### Frontend Setup
 
 1. **Navigate to project root:**
+
    ```bash
    cd ..
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Start the development server:**
+
    ```bash
    npm run dev
    ```
@@ -123,25 +157,25 @@ Claimify/
 
 ### Authentication Routes (`/api/auth`)
 
-| Method | Endpoint | Description | Body |
-|--------|----------|-------------|------|
-| POST | `/register` | Register new user | `{ name, email, password }` |
-| POST | `/login` | User login | `{ email, password }` |
+| Method | Endpoint    | Description       | Body                        |
+| ------ | ----------- | ----------------- | --------------------------- |
+| POST   | `/register` | Register new user | `{ name, email, password }` |
+| POST   | `/login`    | User login        | `{ email, password }`       |
 
 ### User Routes (`/api/user`) - Protected
 
-| Method | Endpoint | Description | Headers |
-|--------|----------|-------------|---------|
-| GET | `/profile` | Get user profile | `Authorization: Bearer <token>` |
-| PUT | `/profile` | Update profile | `Authorization: Bearer <token>` |
-| PUT | `/change-password` | Change password | `Authorization: Bearer <token>` |
-| PUT | `/deactivate` | Deactivate account | `Authorization: Bearer <token>` |
+| Method | Endpoint           | Description        | Headers                         |
+| ------ | ------------------ | ------------------ | ------------------------------- |
+| GET    | `/profile`         | Get user profile   | `Authorization: Bearer <token>` |
+| PUT    | `/profile`         | Update profile     | `Authorization: Bearer <token>` |
+| PUT    | `/change-password` | Change password    | `Authorization: Bearer <token>` |
+| PUT    | `/deactivate`      | Deactivate account | `Authorization: Bearer <token>` |
 
 ### Health Check
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Server health check |
+| Method | Endpoint      | Description         |
+| ------ | ------------- | ------------------- |
+| GET    | `/api/health` | Server health check |
 
 ## Authentication Flow
 
@@ -209,6 +243,7 @@ curl -X GET http://localhost:3001/api/user/profile \
 ## Database Schema
 
 ### User Model
+
 ```javascript
 {
   name: String,           // Required, 2-50 characters

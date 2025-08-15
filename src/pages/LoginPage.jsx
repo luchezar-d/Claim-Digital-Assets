@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiArrowLeft, FiCheck } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiMail, FiLock, FiArrowLeft } from 'react-icons/fi';
 import { authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { ROUTES } from '../constants/routes';
 import { Player } from '@lottiefiles/react-lottie-player';
 import cLogo from '../assets/images/clogo.png';
 import websitesAnimation from '../assets/animations/websites.json';
@@ -11,11 +12,11 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-  
+
   const from = location.state?.from?.pathname || '/dashboard';
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,7 +26,7 @@ const LoginPage = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
     // Clear error when user starts typing
     if (error) setError('');
@@ -33,29 +34,24 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Prevent multiple submissions
     if (isLoading) {
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
 
     try {
       const response = await authAPI.login(formData);
-      
+
       if (response.data.success) {
-        // Show success message first
-        setIsSuccess(true);
-        
-        // Use auth context to login
+        // Use auth context to login first
         login(response.data.data.user, response.data.data.token);
-        
-        // Small delay to show success state, then redirect
-        setTimeout(() => {
-          navigate(from, { replace: true });
-        }, 1500);
+
+        // Navigate immediately - React Router will handle the state update
+        navigate(from || ROUTES.DASHBOARD, { replace: true });
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -71,13 +67,12 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col md:flex-row items-center justify-center px-6">
-      
       {/* Left Section - 50% width */}
       <div className="w-full md:w-[50%] flex flex-col items-center justify-center text-white text-center py-8 px-4 md:fixed md:left-0 md:top-0 md:h-screen">
         {/* Back to Home Button */}
         <div className="absolute top-6 left-6 md:top-8 md:left-8">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200"
           >
             <FiArrowLeft size={18} />
@@ -90,9 +85,9 @@ const LoginPage = () => {
             autoplay
             loop
             src={websitesAnimation}
-            style={{ 
-              width: '450px', 
-              height: '450px'
+            style={{
+              width: '450px',
+              height: '450px',
             }}
             fallback={
               <div className="w-[450px] h-[450px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl flex items-center justify-center border border-purple-500/20">
@@ -105,7 +100,9 @@ const LoginPage = () => {
           />
           <h1 className="text-2xl font-semibold mt-3">Welcome to Claimify</h1>
           <p className="text-base mt-2 max-w-xs leading-relaxed">
-            Streamline your claims process with<br />intelligent automation and secure management.
+            Streamline your claims process with
+            <br />
+            intelligent automation and secure management.
           </p>
         </div>
       </div>
@@ -116,9 +113,9 @@ const LoginPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center items-center space-x-3 mb-6">
-              <img 
-                src={cLogo} 
-                alt="Claimify Logo" 
+              <img
+                src={cLogo}
+                alt="Claimify Logo"
                 className="h-10 w-auto filter brightness-0 invert"
               />
               <span className="font-heading text-xl font-bold text-white">Claimify</span>
@@ -213,7 +210,10 @@ const LoginPage = () => {
                   Remember me
                 </label>
               </div>
-              <a href="#" className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+              <a
+                href="#"
+                className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
                 Forgot password?
               </a>
             </div>
@@ -223,8 +223,8 @@ const LoginPage = () => {
               type="submit"
               disabled={isLoading || isSuccess}
               className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
-                isSuccess 
-                  ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' 
+                isSuccess
+                  ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
                   : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
               }`}
             >
@@ -248,8 +248,8 @@ const LoginPage = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               Don't have an account?{' '}
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-200"
               >
                 Sign up
@@ -267,7 +267,7 @@ const LoginPage = () => {
                 <span className="px-2 bg-zinc-900 text-gray-400">Or</span>
               </div>
             </div>
-            
+
             <div className="mt-6">
               <Link
                 to="/register"

@@ -12,7 +12,12 @@
     min-height: 100vh;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Playfair Display', serif;
   }
 }
@@ -41,24 +46,25 @@
 }
 
 @keyframes fade-in {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes float {
-  0%, 100% { 
-    transform: translateY(0px) scale(1); 
-    opacity: 0.3; 
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.3;
   }
-  50% { 
-    transform: translateY(-10px) scale(1.2); 
-    opacity: 0.8; 
+  50% {
+    transform: translateY(-10px) scale(1.2);
+    opacity: 0.8;
   }
 }
 
@@ -159,8 +165,10 @@ html {
     inset: -2px;
     border-radius: 24px;
     padding: 2px;
-    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
     mask-composite: xor;
     opacity: 0;
     transition: opacity 0.5s ease;
@@ -198,28 +206,28 @@ html {
 
   /* Enhanced shadow effects */
   .shadow-package {
-    box-shadow: 
+    box-shadow:
       0 4px 6px -1px rgba(0, 0, 0, 0.1),
       0 2px 4px -1px rgba(0, 0, 0, 0.06),
       0 0 0 1px rgba(255, 255, 255, 0.05);
   }
 
   .shadow-package-hover {
-    box-shadow: 
+    box-shadow:
       0 25px 50px -12px rgba(0, 0, 0, 0.25),
       0 0 0 1px rgba(255, 255, 255, 0.1),
       0 0 50px rgba(147, 51, 234, 0.2);
   }
 
   .shadow-package-hover.green {
-    box-shadow: 
+    box-shadow:
       0 25px 50px -12px rgba(0, 0, 0, 0.25),
       0 0 0 1px rgba(255, 255, 255, 0.1),
       0 0 50px rgba(34, 197, 94, 0.2);
   }
 
   .shadow-package-hover.blue {
-    box-shadow: 
+    box-shadow:
       0 25px 50px -12px rgba(0, 0, 0, 0.25),
       0 0 0 1px rgba(255, 255, 255, 0.1),
       0 0 50px rgba(59, 130, 246, 0.2);
@@ -283,32 +291,40 @@ html {
 
   /* Enhanced Shadow Effects */
   .shadow-3xl {
-    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow:
+      0 35px 60px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
   }
 
   .shadow-glow-green {
-    box-shadow: 0 0 50px rgba(34, 197, 94, 0.3), 0 0 100px rgba(34, 197, 94, 0.1);
+    box-shadow:
+      0 0 50px rgba(34, 197, 94, 0.3),
+      0 0 100px rgba(34, 197, 94, 0.1);
   }
 
   .shadow-glow-blue {
-    box-shadow: 0 0 50px rgba(59, 130, 246, 0.3), 0 0 100px rgba(59, 130, 246, 0.1);
+    box-shadow:
+      0 0 50px rgba(59, 130, 246, 0.3),
+      0 0 100px rgba(59, 130, 246, 0.1);
   }
 
   .shadow-glow-purple {
-    box-shadow: 0 0 50px rgba(147, 51, 234, 0.3), 0 0 100px rgba(147, 51, 234, 0.1);
+    box-shadow:
+      0 0 50px rgba(147, 51, 234, 0.3),
+      0 0 100px rgba(147, 51, 234, 0.1);
   }
 
   /* Neomorphic Effects */
   .neumorphism {
     background: linear-gradient(145deg, #1e293b, #0f172a);
-    box-shadow: 
+    box-shadow:
       20px 20px 40px #0a0f1a,
       -20px -20px 40px #2a3441;
   }
 
   .neumorphism-inset {
     background: linear-gradient(145deg, #0f172a, #1e293b);
-    box-shadow: 
+    box-shadow:
       inset 15px 15px 30px #0a0f1a,
       inset -15px -15px 30px #2a3441;
   }
@@ -354,7 +370,7 @@ html {
   .package-card {
     transform: none !important;
   }
-  
+
   .package-card:hover {
     transform: scale(1.02) !important;
   }

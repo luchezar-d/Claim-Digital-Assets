@@ -12,29 +12,32 @@ const HomePage = () => {
     <div className="bg-[#0a0a0a] text-white">
       {/* Hidden div to prevent Tailwind from purging font classes */}
       <div className="hidden font-heading font-body"></div>
-      
+
       <Navbar />
-      
+
       {/* Hero Section - Full viewport height minus navbar */}
-      <section id="home" className="min-h-screen flex items-center justify-center px-6 md:px-12 bg-[#0a0a0a] pt-20">
+      <section
+        id="home"
+        className="min-h-screen flex items-center justify-center px-6 md:px-12 bg-[#0a0a0a] pt-20"
+      >
         <HeroSection />
       </section>
-      
+
       {/* Informational Section */}
       <InformationalSection />
-      
+
       {/* Packages Section */}
       <PackagesSection />
-      
+
       {/* Features Section */}
       <FeaturesSection />
-      
+
       {/* Trust Section */}
       <TrustSection />
-      
+
       {/* Disclaimer Section */}
       <DisclaimerSection />
-      
+
       {/* Footer */}
       <Footer />
     </div>

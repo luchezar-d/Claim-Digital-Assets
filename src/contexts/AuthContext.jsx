@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { userAPI } from '../services/api';
+import { STORAGE_KEYS } from '../constants/storage';
 
 const AuthContext = createContext();
 
@@ -22,8 +22,8 @@ export const AuthProvider = ({ children }) => {
 
   const initializeAuth = () => {
     try {
-      const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
+      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
       if (token && savedUser) {
         const userData = JSON.parse(savedUser);
@@ -33,44 +33,42 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error initializing auth:', error);
       // Clear invalid data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem(STORAGE_KEYS.TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
     } finally {
       setIsLoading(false);
     }
   };
 
   const login = (userData, token) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
+    setIsLoading(false);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
     setUser(null);
     setIsAuthenticated(false);
   };
 
   const updateUser = (userData) => {
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(userData));
   };
 
   const value = {
     user,
+    token: localStorage.getItem(STORAGE_KEYS.TOKEN),
     isLoading,
     isAuthenticated,
     login,
     logout,
-    updateUser
+    updateUser,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
