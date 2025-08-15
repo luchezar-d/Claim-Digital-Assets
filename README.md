@@ -114,13 +114,19 @@ cd backend && npm run migrate:users
    npm install
    ```
 
-3. **Environment variables** (already configured):
+3. **Environment variables setup:**
 
+   ```bash
+   # Copy the example file and update with your values
+   cp backend/.env.example backend/.env
+   ```
+
+   Then update `backend/.env` with your actual values:
    ```env
-   MONGODB_URI=mongodb+srv://luchezarddimitrov:ylnpYBVa1Skwr8mM@cluster0.etep2gv.mongodb.net/claimhub_auth?retryWrites=true&w=majority&appName=Cluster0
-   JWT_SECRET=claim-nest-super-secret-jwt-key-2025-change-this-in-production
+   MONGODB_URI=your-mongodb-uri-here
+   DB_NAME=claimify_dev
+   JWT_SECRET=replace_me_with_a_long_random_string
    PORT=3001
-   NODE_ENV=development
    ```
 
 4. **Start the backend server:**

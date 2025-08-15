@@ -43,13 +43,19 @@ npm install
 
 ### 2. Environment Configuration
 
-Update `.env` file with your MongoDB Atlas credentials:
+Copy and update the environment file:
+
+```bash
+cp .env.example .env
+```
+
+Then update `.env` with your actual values:
 
 ```env
-MONGODB_URI=mongodb+srv://your-username:your-password@cluster0.xxxxx.mongodb.net/claimhub_auth?retryWrites=true&w=majority
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-PORT=5000
-NODE_ENV=development
+MONGODB_URI=your-mongodb-uri-here
+DB_NAME=claimify_dev
+JWT_SECRET=replace_me_with_a_long_random_string
+PORT=3001
 ```
 
 ### 3. MongoDB Atlas Setup
