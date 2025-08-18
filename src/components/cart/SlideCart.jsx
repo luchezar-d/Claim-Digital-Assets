@@ -10,6 +10,7 @@ export default function SlideCart() {
     itemCount,
     subtotalCents,
     loading,
+    initialLoad,
     error,
     closeCart,
     removeItem,
@@ -101,14 +102,14 @@ export default function SlideCart() {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
-            {loading && (
+            {initialLoad && (
               <div className="p-8 text-center">
                 <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-purple-300">Loading...</p>
+                <p className="text-purple-300">Loading cart...</p>
               </div>
             )}
 
-            {!loading && items.length === 0 && (
+            {!initialLoad && items.length === 0 && (
               <div className="p-8 text-center">
                 <ShoppingBag className="w-16 h-16 text-purple-400/60 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-white mb-2 font-heading">Your cart is empty</h3>
@@ -116,7 +117,7 @@ export default function SlideCart() {
               </div>
             )}
 
-            {!loading && items.length > 0 && (
+            {!initialLoad && items.length > 0 && (
               <div className="p-4 space-y-4">
                 {items.map((item) => {
                   // Determine package color based on slug
@@ -178,7 +179,7 @@ export default function SlideCart() {
                         <button
                           onClick={() => removeItem(item._id)}
                           className="text-red-400 hover:text-red-300 transition-colors p-1"
-                          disabled={loading}
+                          title="Remove item"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -192,7 +193,7 @@ export default function SlideCart() {
                   <button
                     onClick={clearCart}
                     className="w-full text-sm text-purple-400 hover:text-red-400 transition-colors py-3 border-t border-purple-500/30 mt-4 pt-4"
-                    disabled={loading}
+                    title="Clear all items"
                   >
                     Clear all items
                   </button>

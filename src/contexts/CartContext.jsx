@@ -9,6 +9,7 @@ const initialState = {
   itemCount: 0,
   subtotalCents: 0,
   loading: false,
+  initialLoad: true, // Track if we're still doing the initial cart load
   error: null,
 };
 
@@ -20,6 +21,8 @@ const CART_ACTIONS = {
   SET_CART_DATA: 'SET_CART_DATA',
   SET_ERROR: 'SET_ERROR',
   CLEAR_ERROR: 'CLEAR_ERROR',
+  REMOVE_ITEM_OPTIMISTIC: 'REMOVE_ITEM_OPTIMISTIC',
+  ADD_ITEM_OPTIMISTIC: 'ADD_ITEM_OPTIMISTIC',
 };
 
 // Reducer
@@ -38,12 +41,31 @@ function cartReducer(state, action) {
         itemCount: action.payload.itemCount || 0,
         subtotalCents: action.payload.subtotalCents || 0,
         loading: false,
+        initialLoad: false, // Mark initial load as complete
         error: null,
       };
     case CART_ACTIONS.SET_ERROR:
       return { ...state, error: action.payload, loading: false };
     case CART_ACTIONS.CLEAR_ERROR:
       return { ...state, error: null };
+    case CART_ACTIONS.REMOVE_ITEM_OPTIMISTIC:
+      const filteredItems = state.items.filter(item => item._id !== action.payload);
+      const newItemCount = Math.max(0, state.itemCount - 1);
+      // Recalculate subtotal
+      const newSubtotalCents = filteredItems.reduce((sum, item) => sum + (item.priceCents || 0), 0);
+      return {
+        ...state,
+        items: filteredItems,
+        itemCount: newItemCount,
+        subtotalCents: newSubtotalCents,
+      };
+    case CART_ACTIONS.ADD_ITEM_OPTIMISTIC:
+      return {
+        ...state,
+        items: [...state.items, action.payload],
+        itemCount: state.itemCount + 1,
+        subtotalCents: state.subtotalCents + (action.payload.priceCents || 0),
+      };
     default:
       return state;
   }
@@ -99,7 +121,7 @@ export function CartProvider({ children }) {
 
   const addToCart = useCallback(async (productId, quantity = 1) => {
     try {
-      dispatch({ type: CART_ACTIONS.SET_LOADING, payload: true });
+      // Don't show loading spinner for add operations to keep UI smooth
       const response = await api.post('/cart/items', { productId, quantity });
       dispatch({ type: CART_ACTIONS.SET_CART_DATA, payload: response.data });
       return response.data;
@@ -126,18 +148,23 @@ export function CartProvider({ children }) {
   }, []);
 
   const removeItem = useCallback(async (itemId) => {
+    // Optimistically remove the item first for instant UI feedback
+    dispatch({ type: CART_ACTIONS.REMOVE_ITEM_OPTIMISTIC, payload: itemId });
+    
     try {
-      dispatch({ type: CART_ACTIONS.SET_LOADING, payload: true });
       const response = await api.delete(`/cart/items/${itemId}`);
+      // Update with actual server data to ensure consistency
       dispatch({ type: CART_ACTIONS.SET_CART_DATA, payload: response.data });
     } catch (error) {
       console.error('Error removing cart item:', error);
+      // If the API call fails, refetch the cart to restore the correct state
+      fetchCart();
       dispatch({ 
         type: CART_ACTIONS.SET_ERROR, 
         payload: error.response?.data?.message || 'Failed to remove item' 
       });
     }
-  }, []);
+  }, [fetchCart]);
 
   const clearCart = useCallback(async () => {
     try {

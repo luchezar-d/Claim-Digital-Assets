@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useCart } from '../contexts/CartContext.jsx';
-import { flyToCart } from "../utils/flyToCart";
+import { flyGift } from "../utils/flyToCart";
 
 const GiftIcon = (props) => (
   <svg viewBox="0 0 24 24" {...props}>
@@ -26,8 +26,8 @@ const BankIcon = (props) => (
   </svg>
 );
 
-const Card = memo(function Card({ pkg, featured, onAdd, reduceMotion }) {
-  const iconRef = useRef(null);
+const Card = memo(function Card({ pkg, featured, onAddFromButton, reduceMotion }) {
+  const btnCartRef = useRef(null);
 
   const base =
     "relative rounded-2xl p-6 sm:p-8 bg-[#0e1116] ring-1 ring-white/10 text-white/90 " +
@@ -45,7 +45,6 @@ const Card = memo(function Card({ pkg, featured, onAdd, reduceMotion }) {
 
       <div className="flex items-center gap-3">
         <div
-          ref={iconRef}
           className="flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-white/10"
           style={{ background: pkg.iconBg }}
         >
@@ -73,11 +72,17 @@ const Card = memo(function Card({ pkg, featured, onAdd, reduceMotion }) {
       </ul>
 
       <button
-        onClick={() => onAdd?.(iconRef.current, pkg)}
-        className="mt-6 w-full rounded-xl py-3 font-medium bg-white text-black hover:opacity-90 transition-opacity"
+        onClick={() => onAddFromButton?.(btnCartRef.current)}
+        className="mt-6 w-full rounded-xl py-3 font-medium bg-white text-black hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
         style={{ boxShadow: "0 4px 20px rgba(0,0,0,.25)" }}
       >
-        🛒 Add to Cart
+        {/* button cart icon (extraction starts here) */}
+        <svg ref={btnCartRef} viewBox="0 0 24 24" className="h-5 w-5">
+          <path d="M6 6h-.8a1 1 0 1 1 0-2H7a1 1 0 0 1 .96.73L8.2 6H20a1 1 0 0 1 .97 1.24l-1.8 7.2A2 2 0 0 1 17.24 16H9a1 1 0 1 1 0-2h8.24l1.2-4.8H8.63l-1.1-3.66A1 1 0 0 0 6.6 5H5.2a1 1 0 1 1 0-2H6a1 1 0 0 1 0 2Z" fill="currentColor"/>
+          <circle cx="10" cy="20" r="1.8" fill="currentColor"/>
+          <circle cx="17" cy="20" r="1.8" fill="currentColor"/>
+        </svg>
+        Add to Cart
       </button>
     </div>
   );
@@ -149,7 +154,7 @@ export default function PackagesSection({ cartRef }) {
   );
 
   // Memoized callback to prevent unnecessary re-renders
-  const handleAddToCart = useCallback(async (iconEl, pkg) => {
+  const handleAddToCart = useCallback(async (btnCartIcon, pkg) => {
     if (!isAuthenticated) {
       alert('Please log in to add items to your cart.');
       navigate('/login');
@@ -165,27 +170,37 @@ export default function PackagesSection({ cartRef }) {
       
       console.log('Found product:', product);
       
-      // Trigger fly-to-cart animation first, then add to cart
-      flyToCart({
-        sourceEl: iconEl,
-        cartEl: cartRef?.current,
-        reduceMotion,
-        onFinish: async () => {
-          try {
-            await addToCart(product._id, 1);
-            console.log('Added to cart successfully');
-            openCart();
-          } catch (addError) {
-            console.error('Error adding to cart after animation:', addError);
-            // Don't show alert for duplicate items, just open cart to show what's there
-            if (addError.message === 'This package is already in your cart') {
-              openCart();
-              return;
+      // Trigger premium fly-to-cart animation first, then add to cart
+      if (btnCartIcon && cartRef?.current) {
+        try {
+          flyGift({ 
+            sourceEl: btnCartIcon, 
+            cartEl: cartRef.current, 
+            reduceMotion,
+            packageColor: pkg.priceColor, // Pass the package color for neon effect
+            onArrive: () => {
+              // Animation completed callback if needed
             }
-            alert(`Failed to add item to cart: ${addError.response?.data?.message || addError.message}`);
-          }
+          });
+        } catch (animErr) {
+          console.warn("Animation failed gracefully:", animErr);
         }
-      });
+      }
+
+      // Add to cart after animation
+      try {
+        await addToCart(product._id, 1);
+        console.log('Added to cart successfully');
+        // Cart will just update in the navbar without opening
+      } catch (addError) {
+        console.error('Error adding to cart:', addError);
+        // Don't show alert for duplicate items, the animation already provided feedback
+        if (addError.message === 'This package is already in your cart') {
+          console.log('Package already in cart, animation still provided nice feedback');
+          return;
+        }
+        alert(`Failed to add item to cart: ${addError.response?.data?.message || addError.message}`);
+      }
     } catch (error) {
       console.error('Error fetching product:', error);
       alert(`Failed to find product: ${error.response?.data?.message || error.message}`);
@@ -221,7 +236,7 @@ export default function PackagesSection({ cartRef }) {
               pkg={pkg}
               featured={!!pkg.featured}
               reduceMotion={reduceMotion}
-              onAdd={handleAddToCart}
+              onAddFromButton={(btnCartIcon) => handleAddToCart(btnCartIcon, pkg)}
             />
           ))}
         </div>
