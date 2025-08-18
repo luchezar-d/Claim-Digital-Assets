@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Entitlement from '../models/Entitlement.js';
 import { requireAuth } from '../middleware/auth.js';
 import 'dotenv/config';
 
@@ -170,6 +171,12 @@ router.get('/me', requireAuth, async (req, res) => {
       });
     }
 
+    // Get active packages count
+    const packagesCount = await Entitlement.countDocuments({
+      userId: user._id,
+      status: 'active',
+    });
+
     res.json({
       success: true,
       data: {
@@ -179,6 +186,7 @@ router.get('/me', requireAuth, async (req, res) => {
           name: user.name,
           roles: user.roles,
           lastLogin: user.lastLogin,
+          packagesCount,
         },
       },
     });

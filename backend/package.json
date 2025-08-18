@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:test": "node test-db.mjs",
-    "migrate:users": "node scripts/migrate-users-email.js"
+    "migrate:users": "node scripts/migrate-users-email.js",
+    "seed:products": "node scripts/seed-products.mjs"
   },
   "keywords": [
     "authentication",

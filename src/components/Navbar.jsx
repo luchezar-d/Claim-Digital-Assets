@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX, FiUser, FiLogOut, FiUserPlus, FiLogIn } from 'react-icons/fi';
+import { ShoppingCart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext.jsx';
 import cLogo from '../assets/images/clogo.png';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+  const { openCart, itemCount } = useCart();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -63,36 +66,50 @@ const Navbar = () => {
             {/* Login/User Menu - stays on the right */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-4 pl-4 border-l border-gray-600">
+                {/* Cart Button */}
+                <button
+                  onClick={openCart}
+                  className="relative p-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  title="Cart"
+                >
+                  <ShoppingCart size={20} />
+                  {itemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {itemCount > 99 ? '99+' : itemCount}
+                    </span>
+                  )}
+                </button>
+                
                 <Link
                   to="/dashboard"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  className="p-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  title={`Profile - ${user?.name}`}
                 >
-                  <FiUser size={18} />
-                  <span className="hidden lg:block">{user?.name}</span>
+                  <FiUser size={20} />
                 </Link>
                 <button
                   onClick={logout}
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  className="p-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  title="Logout"
                 >
-                  <FiLogOut size={18} />
-                  <span className="hidden lg:block">Logout</span>
+                  <FiLogOut size={20} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-4">
                 <Link
                   to="/register"
-                  className="flex items-center space-x-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  className="p-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  title="Sign up"
                 >
-                  <FiUserPlus size={18} />
-                  <span>Sign up</span>
+                  <FiUserPlus size={20} />
                 </Link>
                 <Link
                   to="/login"
-                  className="flex items-center space-x-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  className="p-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  title="Login"
                 >
-                  <FiLogIn size={18} />
-                  <span>Login</span>
+                  <FiLogIn size={20} />
                 </Link>
               </div>
             )}
@@ -138,6 +155,17 @@ const Navbar = () => {
             <div className="pt-4 border-t border-gray-700/50">
               {isAuthenticated ? (
                 <div className="space-y-3">
+                  {/* Cart Button for Mobile */}
+                  <button
+                    onClick={() => {
+                      openCart();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="font-body flex items-center justify-center space-x-2 w-full text-gray-300 hover:text-white hover:bg-white/10 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
+                  >
+                    <ShoppingCart size={18} />
+                    <span>Cart ({itemCount})</span>
+                  </button>
                   <Link
                     to="/dashboard"
                     className="font-body flex items-center justify-center space-x-2 w-full text-gray-300 hover:text-white hover:bg-white/10 px-6 py-3 rounded-lg transition-all duration-200 font-medium"

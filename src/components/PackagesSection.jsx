@@ -1,28 +1,36 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ShoppingCart } from 'lucide-react';
+import api from '../services/api.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { useCart } from '../contexts/CartContext.jsx';
 
 const PackagesSection = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { addToCart, openCart } = useCart();
 
   const packages = [
     {
-      id: 'free',
+      id: 'starter',
       title: 'Free-Only Deals',
       reward: 'Up to $50',
       price: 'Free',
+      priceCents: 0,
       icon: '🎁',
       color: 'green',
       description: 'Sign up. Earn instantly. No strings attached.',
       features: ['100% free signup', 'Instant rewards', 'No KYC needed', 'Trusted platforms'],
-      cta: 'Start Free',
+      cta: 'Add to Cart',
       route: '/packages/free',
       highlight: false,
     },
     {
-      id: 'no-deposit',
+      id: 'pro',
       title: 'No-Deposit Perks',
       reward: 'Up to $500',
-      price: '€5.99',
+      price: '€9.90',
+      priceCents: 990,
       icon: '💎',
       color: 'purple',
       description: 'Earn real assets like crypto or stocks — no deposit required.',
@@ -32,15 +40,16 @@ const PackagesSection = () => {
         'No payment upfront',
         'Verified offers only',
       ],
-      cta: 'View Perks',
+      cta: 'Add to Cart',
       route: '/packages/no-deposit',
       highlight: true,
     },
     {
-      id: 'deposit',
+      id: 'elite',
       title: 'Verified Deposit Bonuses',
       reward: 'Up to $300',
-      price: '€9.99',
+      price: '€29.90',
+      priceCents: 2990,
       icon: '🏦',
       color: 'blue',
       description: 'Earn high-value rewards with transparent deposit offers.',
@@ -50,14 +59,43 @@ const PackagesSection = () => {
         'Transparent terms',
         'Real cash or crypto',
       ],
-      cta: 'Explore Bonuses',
+      cta: 'Add to Cart',
       route: '/packages/deposit',
       highlight: false,
     },
   ];
 
-  const handleCardClick = (route) => {
-    navigate(route);
+  const handleAddToCart = async (pkg) => {
+    if (!isAuthenticated) {
+      alert('Please log in to add items to your cart.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      console.log('Adding to cart:', pkg.id);
+      
+      // Find the product by slug from the database
+      const response = await api.get(`/products/${pkg.id}`);
+      const product = response.data;
+      
+      console.log('Found product:', product);
+      
+      await addToCart(product._id, 1);
+      console.log('Added to cart successfully');
+      openCart();
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      console.error('Error response:', error.response?.data);
+      
+      // Don't show alert for duplicate items, just open cart to show what's there
+      if (error.message === 'This package is already in your cart') {
+        openCart();
+        return;
+      }
+      
+      alert(`Failed to add item to cart: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   return (
@@ -76,7 +114,6 @@ const PackagesSection = () => {
           {packages.map((pkg, index) => (
             <div
               key={pkg.id}
-              onClick={() => handleCardClick(pkg.route)}
               className={`
                 group relative cursor-pointer transition-transform duration-150 ease-out hover:z-20
                 rounded-2xl lg:rounded-3xl shadow-lg flex flex-col justify-between text-center
@@ -199,10 +236,16 @@ const PackagesSection = () => {
 
                 {/* CTA Button */}
                 <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleAddToCart(pkg);
+                  }}
                   className={`
                   w-full py-2 lg:py-2.5 rounded-lg font-semibold text-xs lg:text-sm
                   transition-all duration-300 transform group-hover:scale-105 group-hover:-translate-y-1
                   shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-opacity-30
+                  flex items-center justify-center gap-2
                   ${
                     pkg.highlight
                       ? 'bg-white text-purple-600 hover:bg-pink-100 focus:ring-purple-500'
@@ -212,6 +255,7 @@ const PackagesSection = () => {
                   }
                 `}
                 >
+                  <ShoppingCart className="w-4 h-4" />
                   {pkg.cta}
                 </button>
               </div>

@@ -6,6 +6,9 @@ import mongoose from 'mongoose';
 import { connectMongo } from './src/lib/db.js';
 import authRoutes from './src/routes/auth.js';
 import healthRoute from './src/routes/health.js';
+import productsRouter from './src/routes/products.js';
+import cartRouter from './src/routes/cart.js';
+import meRouter from './src/routes/me.js';
 import { notFound, errorHandler } from './src/middleware/error.js';
 
 const app = express();
@@ -18,6 +21,9 @@ app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productsRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/me', meRouter);
 app.use('/api', healthRoute);
 
 // Error handling

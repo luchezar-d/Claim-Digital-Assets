@@ -1,11 +1,26 @@
 import { Player } from '@lottiefiles/react-lottie-player';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import cryptoPhoneAnimation from '../assets/animations/Crypto  Phone.json';
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      // If logged in, scroll to packages section
+      scrollToSection('packages');
+    } else {
+      // If not logged in, redirect to login page
+      navigate('/login');
     }
   };
 
@@ -28,10 +43,10 @@ const HeroSection = () => {
 
           <div className="animate-fade-in-up animation-delay-400">
             <button
-              onClick={() => scrollToSection('packages')}
+              onClick={handleGetStarted}
               className="font-body bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 text-lg"
             >
-              Get Started
+              {isAuthenticated ? 'View Packages' : 'Get Started'}
             </button>
           </div>
         </div>
