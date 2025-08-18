@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUser, FiMail, FiCalendar, FiLogOut, FiSettings, FiShield } from 'react-icons/fi';
 import { userAPI } from '../services/api';
@@ -11,6 +11,7 @@ const DashboardPage = () => {
   const { user: authUser, logout, updateUser } = useAuth();
   const [user, setUser] = useState(authUser);
   const [isLoading, setIsLoading] = useState(false);
+  const cartRef = useRef(null);
 
   useEffect(() => {
     if (authUser) {
@@ -67,7 +68,7 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Use main navbar component */}
-      <Navbar />
+      <Navbar ref={cartRef} />
 
       {/* Main Content with top padding to account for fixed navbar */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">

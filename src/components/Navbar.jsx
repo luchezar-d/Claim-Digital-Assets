@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX, FiUser, FiLogOut, FiUserPlus, FiLogIn } from 'react-icons/fi';
 import { ShoppingCart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext.jsx';
+import NavCart from './NavCart.jsx';
 import cLogo from '../assets/images/clogo.png';
 
-const Navbar = () => {
+const Navbar = forwardRef(function Navbar(props, cartRef) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const { openCart, itemCount } = useCart();
@@ -67,18 +68,7 @@ const Navbar = () => {
             {isAuthenticated ? (
               <div className="flex items-center space-x-4 pl-4 border-l border-gray-600">
                 {/* Cart Button */}
-                <button
-                  onClick={openCart}
-                  className="relative p-2 text-gray-300 hover:text-white transition-colors duration-200"
-                  title="Cart"
-                >
-                  <ShoppingCart size={20} />
-                  {itemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {itemCount > 99 ? '99+' : itemCount}
-                    </span>
-                  )}
-                </button>
+                <NavCart ref={cartRef} count={itemCount} />
                 
                 <Link
                   to="/dashboard"
@@ -211,6 +201,6 @@ const Navbar = () => {
       )}
     </nav>
   );
-};
+});
 
 export default Navbar;

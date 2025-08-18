@@ -1,3 +1,4 @@
+import React, { useRef } from 'react';
 import Navbar from '../components/Navbar';
 import HeroSection from '../components/HeroSection';
 import InformationalSection from '../components/InformationalSection';
@@ -8,12 +9,14 @@ import DisclaimerSection from '../components/DisclaimerSection';
 import Footer from '../components/Footer';
 
 const HomePage = () => {
+  const cartRef = useRef(null);
+
   return (
     <div className="bg-[#0a0a0a] text-white">
       {/* Hidden div to prevent Tailwind from purging font classes */}
       <div className="hidden font-heading font-body"></div>
 
-      <Navbar />
+      <Navbar ref={cartRef} />
 
       {/* Hero Section - Full viewport height minus navbar */}
       <section
@@ -27,7 +30,7 @@ const HomePage = () => {
       <InformationalSection />
 
       {/* Packages Section */}
-      <PackagesSection />
+      <PackagesSection cartRef={cartRef} />
 
       {/* Features Section */}
       <FeaturesSection />
