@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX, FiUser, FiLogOut, FiUserPlus, FiLogIn } from 'react-icons/fi';
+import { ShoppingCart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext.jsx';
+import NavCart from './NavCart.jsx';
 import cLogo from '../assets/images/clogo.png';
 
-const Navbar = () => {
+const Navbar = forwardRef(function Navbar(props, cartRef) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+  const { openCart, itemCount } = useCart();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -16,7 +20,7 @@ const Navbar = () => {
     { name: 'Home', href: '/' },
     { name: 'Offers', href: '/#offers' },
     { name: 'Upgrade', href: '/#upgrade' },
-    { name: 'About', href: '/#about' }
+    { name: 'About', href: '/#about' },
   ];
 
   return (
@@ -26,9 +30,9 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center space-x-3">
             <Link to="/" className="flex items-center space-x-3">
-              <img 
-                src={cLogo} 
-                alt="Claim Nest Logo" 
+              <img
+                src={cLogo}
+                alt="Claim Nest Logo"
                 className="h-16 w-auto filter brightness-0 invert"
               />
               <span className="font-heading text-2xl font-bold text-white">Claim Nest</span>
@@ -39,7 +43,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center justify-between w-full ml-8">
             {/* Navigation Links - positioned towards center */}
             <div className="flex items-center space-x-8 mx-auto">
-              {navLinks.map((link) => (
+              {navLinks.map((link) =>
                 link.name === 'Home' ? (
                   <Link
                     key={link.name}
@@ -57,42 +61,45 @@ const Navbar = () => {
                     {link.name}
                   </a>
                 )
-              ))}
+              )}
             </div>
-            
+
             {/* Login/User Menu - stays on the right */}
             {isAuthenticated ? (
               <div className="flex items-center space-x-4 pl-4 border-l border-gray-600">
-                <Link 
+                {/* Cart Button */}
+                <NavCart ref={cartRef} count={itemCount} />
+                
+                <Link
                   to="/dashboard"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  className="p-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  title={`Profile - ${user?.name}`}
                 >
-                  <FiUser size={18} />
-                  <span className="hidden lg:block">{user?.name}</span>
+                  <FiUser size={20} />
                 </Link>
                 <button
                   onClick={logout}
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  className="p-2 text-gray-300 hover:text-white transition-colors duration-200"
+                  title="Logout"
                 >
-                  <FiLogOut size={18} />
-                  <span className="hidden lg:block">Logout</span>
+                  <FiLogOut size={20} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-6">
-                <Link 
+              <div className="flex items-center space-x-4">
+                <Link
                   to="/register"
-                  className="flex items-center space-x-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  className="p-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  title="Sign up"
                 >
-                  <FiUserPlus size={18} />
-                  <span>Sign up</span>
+                  <FiUserPlus size={20} />
                 </Link>
-                <Link 
+                <Link
                   to="/login"
-                  className="flex items-center space-x-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  className="p-2 font-body text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                  title="Login"
                 >
-                  <FiLogIn size={18} />
-                  <span>Login</span>
+                  <FiLogIn size={20} />
                 </Link>
               </div>
             )}
@@ -114,7 +121,7 @@ const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-gray-800/30">
           <div className="px-6 py-6 space-y-4">
-            {navLinks.map((link) => (
+            {navLinks.map((link) =>
               link.name === 'Home' ? (
                 <Link
                   key={link.name}
@@ -134,11 +141,22 @@ const Navbar = () => {
                   {link.name}
                 </a>
               )
-            ))}
+            )}
             <div className="pt-4 border-t border-gray-700/50">
               {isAuthenticated ? (
                 <div className="space-y-3">
-                  <Link 
+                  {/* Cart Button for Mobile */}
+                  <button
+                    onClick={() => {
+                      openCart();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="font-body flex items-center justify-center space-x-2 w-full text-gray-300 hover:text-white hover:bg-white/10 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
+                  >
+                    <ShoppingCart size={18} />
+                    <span>Cart ({itemCount})</span>
+                  </button>
+                  <Link
                     to="/dashboard"
                     className="font-body flex items-center justify-center space-x-2 w-full text-gray-300 hover:text-white hover:bg-white/10 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -159,7 +177,7 @@ const Navbar = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <Link 
+                  <Link
                     to="/register"
                     className="font-body flex items-center justify-center space-x-2 w-full text-gray-300 hover:text-white hover:bg-white/10 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -167,7 +185,7 @@ const Navbar = () => {
                     <FiUserPlus size={18} />
                     <span>Sign up</span>
                   </Link>
-                  <Link 
+                  <Link
                     to="/login"
                     className="font-body flex items-center justify-center space-x-2 w-full text-gray-300 hover:text-white hover:bg-white/10 px-6 py-3 rounded-lg transition-all duration-200 font-medium"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -183,6 +201,6 @@ const Navbar = () => {
       )}
     </nav>
   );
-};
+});
 
 export default Navbar;

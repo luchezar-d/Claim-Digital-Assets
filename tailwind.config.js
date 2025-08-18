@@ -1,9 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       fontFamily: {
@@ -12,6 +9,7 @@ export default {
         body: ['Inter', 'sans-serif'],
       },
       colors: {
+        brand: '#0a0a0a',
         primary: {
           50: '#f9fafb',
           100: '#f3f4f6',
@@ -48,7 +46,7 @@ export default {
           800: '#262626',
           900: '#171717',
           950: '#0a0a0a',
-        }
+        },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -56,8 +54,8 @@ export default {
         'dark-gradient': 'linear-gradient(135deg, #0a0a0a 0%, #171717 100%)',
         'primary-gradient': 'linear-gradient(135deg, #6b7280 0%, #374151 100%)',
         'accent-gradient': 'linear-gradient(135deg, #71717a 0%, #52525b 100%)',
-      }
+      },
     },
   },
   plugins: [],
-}
+};

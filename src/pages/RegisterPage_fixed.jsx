@@ -13,7 +13,7 @@ const RegisterPage = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -23,13 +23,13 @@ const RegisterPage = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
     // Clear specific error when user starts typing
     if (errors[e.target.name]) {
       setErrors({
         ...errors,
-        [e.target.name]: ''
+        [e.target.name]: '',
       });
     }
   };
@@ -57,7 +57,8 @@ const RegisterPage = () => {
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters long';
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one lowercase letter, one uppercase letter, and one number';
+      newErrors.password =
+        'Password must contain at least one lowercase letter, one uppercase letter, and one number';
     }
 
     // Confirm password validation
@@ -72,7 +73,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -86,13 +87,13 @@ const RegisterPage = () => {
       const response = await authAPI.register({
         name: formData.name,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
-      
+
       if (response.data.success) {
         // Use auth context to login
         login(response.data.data.user, response.data.data.token);
-        
+
         // Redirect to dashboard
         navigate('/dashboard');
       }
@@ -101,7 +102,7 @@ const RegisterPage = () => {
       if (error.response?.data?.errors) {
         // Handle validation errors from backend
         const backendErrors = {};
-        error.response.data.errors.forEach(err => {
+        error.response.data.errors.forEach((err) => {
           backendErrors[err.path] = err.msg;
         });
         setErrors(backendErrors);
@@ -134,8 +135,8 @@ const RegisterPage = () => {
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-6 md:p-12">
         {/* Back to Home Button */}
         <div className="absolute top-6 left-6 md:top-8 md:left-8">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200"
           >
             <FiArrowLeft size={18} />
@@ -152,9 +153,7 @@ const RegisterPage = () => {
             autoplay
             style={{ width: '280px', height: '280px', margin: '0 auto' }}
           ></lottie-player>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 mt-6">
-            Join Claim Nest
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 mt-6">Join Claim Nest</h2>
           <p className="text-gray-300 text-lg md:text-xl text-center max-w-md mx-auto">
             Start your journey to financial rewards and unlock exclusive perks.
           </p>
@@ -167,9 +166,9 @@ const RegisterPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center items-center space-x-3 mb-6">
-              <img 
-                src={cLogo} 
-                alt="Claim Nest Logo" 
+              <img
+                src={cLogo}
+                alt="Claim Nest Logo"
                 className="h-10 w-auto filter brightness-0 invert"
               />
               <span className="font-heading text-xl font-bold text-white">Claim Nest</span>
@@ -273,7 +272,7 @@ const RegisterPage = () => {
                     )}
                   </button>
                 </div>
-                
+
                 {/* Password Strength Indicator */}
                 {formData.password && (
                   <div className="mt-2">
@@ -286,28 +285,29 @@ const RegisterPage = () => {
                               ? passwordStrength <= 2
                                 ? 'bg-red-500'
                                 : passwordStrength <= 3
-                                ? 'bg-yellow-500'
-                                : 'bg-green-500'
+                                  ? 'bg-yellow-500'
+                                  : 'bg-green-500'
                               : 'bg-gray-600'
                           }`}
                         />
                       ))}
                     </div>
                     <p className="text-xs text-gray-400 mt-1">
-                      Password strength: {
-                        passwordStrength <= 2 ? 'Weak' : 
-                        passwordStrength <= 3 ? 'Medium' : 'Strong'
-                      }
+                      Password strength:{' '}
+                      {passwordStrength <= 2 ? 'Weak' : passwordStrength <= 3 ? 'Medium' : 'Strong'}
                     </p>
                   </div>
                 )}
-                
+
                 {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
               </div>
 
               {/* Confirm Password Field */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -344,7 +344,9 @@ const RegisterPage = () => {
                     </div>
                   )}
                 </div>
-                {errors.confirmPassword && <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>}
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+                )}
               </div>
 
               {/* Terms and Conditions */}
@@ -389,8 +391,8 @@ const RegisterPage = () => {
             <div className="mt-6 text-center">
               <p className="text-gray-400">
                 Already have an account?{' '}
-                <Link 
-                  to="/login" 
+                <Link
+                  to="/login"
                   className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-200"
                 >
                   Sign in
@@ -408,7 +410,7 @@ const RegisterPage = () => {
                   <span className="px-2 bg-gray-800 text-gray-400">Or</span>
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <Link
                   to="/login"

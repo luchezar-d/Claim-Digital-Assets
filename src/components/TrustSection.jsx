@@ -4,20 +4,20 @@ const TrustSection = () => {
   const features = [
     {
       icon: FiRefreshCw,
-      label: "Offers checked daily"
+      label: 'Offers checked daily',
     },
     {
       icon: FiShield,
-      label: "No hidden requirements"
+      label: 'No hidden requirements',
     },
     {
       icon: FiCheck,
-      label: "Only trusted platforms"
+      label: 'Only trusted platforms',
     },
     {
       icon: FiUsers,
-      label: "Community-tested bonuses"
-    }
+      label: 'Community-tested bonuses',
+    },
   ];
 
   return (
@@ -29,9 +29,7 @@ const TrustSection = () => {
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 mb-4">
                 <feature.icon className="w-6 h-6 text-purple-400" />
               </div>
-              <p className="font-body text-sm text-gray-300">
-                {feature.label}
-              </p>
+              <p className="font-body text-sm text-gray-300">{feature.label}</p>
             </div>
           ))}
         </div>

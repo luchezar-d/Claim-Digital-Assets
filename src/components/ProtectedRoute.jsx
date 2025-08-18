@@ -1,28 +1,25 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ROUTES } from '../constants/routes';
+import { STORAGE_KEYS } from '../constants/storage';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const location = useLocation();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  
+  // Fallback check: if React state hasn't updated yet, check localStorage directly
+  const hasToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+  const isActuallyAuthenticated = isAuthenticated || !!hasToken;
 
-  if (isLoading) {
+  if (isLoading && !hasToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
-        <div className="flex items-center space-x-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-          <span className="text-white text-lg">Loading...</span>
-        </div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white"></div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    // Redirect to login page with return url
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return children;
+  return isActuallyAuthenticated ? children : <Navigate to={ROUTES.LOGIN} replace />;
 };
 
 export default ProtectedRoute;

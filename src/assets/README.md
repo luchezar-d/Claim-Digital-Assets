@@ -11,6 +11,7 @@ This folder contains all static assets for the Claim Nest application.
 ## Usage
 
 ### Lottie Animations
+
 Place your Lottie JSON files in the `/animations/` folder and import them like:
 
 ```javascript
@@ -18,6 +19,7 @@ import heroAnimation from '../assets/animations/hero-animation.json';
 ```
 
 ### Example
+
 To use a Lottie animation in the HeroSection:
 
 1. Save your JSON file as `hero-animation.json` in `/src/assets/animations/`

@@ -35,22 +35,31 @@ backend/
 ## 🛠️ Setup Instructions
 
 ### 1. Install Dependencies
+
 ```bash
 cd backend
 npm install
 ```
 
 ### 2. Environment Configuration
-Update `.env` file with your MongoDB Atlas credentials:
+
+Copy and update the environment file:
+
+```bash
+cp .env.example .env
+```
+
+Then update `.env` with your actual values:
 
 ```env
-MONGODB_URI=mongodb+srv://your-username:your-password@cluster0.xxxxx.mongodb.net/claimhub_auth?retryWrites=true&w=majority
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-PORT=5000
-NODE_ENV=development
+MONGODB_URI=your-mongodb-uri-here
+DB_NAME=claimify_dev
+JWT_SECRET=replace_me_with_a_long_random_string
+PORT=3001
 ```
 
 ### 3. MongoDB Atlas Setup
+
 1. Create a MongoDB Atlas account
 2. Create a new cluster
 3. Create a database named `claimhub_auth`
@@ -58,6 +67,7 @@ NODE_ENV=development
 5. Update the connection string in `.env`
 
 ### 4. Run the Server
+
 ```bash
 # Development mode with nodemon
 npm run dev
@@ -71,6 +81,7 @@ npm start
 ### Authentication Routes (`/api/auth`)
 
 #### Register User
+
 ```http
 POST /api/auth/register
 Content-Type: application/json
@@ -83,6 +94,7 @@ Content-Type: application/json
 ```
 
 #### Login User
+
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -94,6 +106,7 @@ Content-Type: application/json
 ```
 
 #### Verify Token
+
 ```http
 POST /api/auth/verify-token
 Content-Type: application/json
@@ -106,12 +119,14 @@ Content-Type: application/json
 ### User Routes (`/api/user`) - Protected
 
 #### Get Profile
+
 ```http
 GET /api/user/profile
 Authorization: Bearer your-jwt-token
 ```
 
 #### Update Profile
+
 ```http
 PUT /api/user/profile
 Authorization: Bearer your-jwt-token
@@ -124,6 +139,7 @@ Content-Type: application/json
 ```
 
 #### Change Password
+
 ```http
 PUT /api/user/change-password
 Authorization: Bearer your-jwt-token
@@ -136,12 +152,14 @@ Content-Type: application/json
 ```
 
 #### Deactivate Account
+
 ```http
 DELETE /api/user/account
 Authorization: Bearer your-jwt-token
 ```
 
 ### Health Check
+
 ```http
 GET /api/health
 ```
@@ -159,6 +177,7 @@ GET /api/health
 ## 📊 Database Schema
 
 ### User Collection
+
 ```javascript
 {
   name: String (required, 2-50 chars),
@@ -176,6 +195,7 @@ GET /api/health
 ### Using curl
 
 **Register:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/register \
   -H "Content-Type: application/json" \
@@ -183,6 +203,7 @@ curl -X POST http://localhost:5000/api/auth/register \
 ```
 
 **Login:**
+
 ```bash
 curl -X POST http://localhost:5000/api/auth/login \
   -H "Content-Type: application/json" \
@@ -190,6 +211,7 @@ curl -X POST http://localhost:5000/api/auth/login \
 ```
 
 **Get Profile:**
+
 ```bash
 curl -X GET http://localhost:5000/api/user/profile \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
@@ -198,6 +220,7 @@ curl -X GET http://localhost:5000/api/user/profile \
 ## 🚀 Deployment
 
 ### Environment Variables for Production
+
 ```env
 MONGODB_URI=your-production-mongodb-uri
 JWT_SECRET=your-production-jwt-secret
@@ -206,6 +229,7 @@ NODE_ENV=production
 ```
 
 ### Recommended Hosting
+
 - **Backend**: Heroku, Railway, Render, or DigitalOcean
 - **Database**: MongoDB Atlas (already configured)
 - **Environment**: Node.js 18+ recommended

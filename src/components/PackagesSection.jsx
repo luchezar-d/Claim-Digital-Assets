@@ -1,192 +1,246 @@
-import React from 'react';
+import React, { memo, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { useCart } from '../contexts/CartContext.jsx';
+import { flyGift } from "../utils/flyToCart";
 
-const PackagesSection = () => {
-  const navigate = useNavigate();
+const GiftIcon = (props) => (
+  <svg viewBox="0 0 24 24" {...props}>
+    <path d="M3 9h18v3H3z" fill="currentColor" opacity=".15"/>
+    <path d="M4 9h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9Zm7-7c1.66 0 3 1.34 3 3v1h2.5a1.5 1.5 0 0 1 0 3H7.5a1.5 1.5 0 0 1 0-3H10V5c0-1.66 1.34-3 3-3Z" fill="currentColor"/>
+  </svg>
+);
 
-  const packages = [
-    {
-      id: 'free',
-      title: 'Free-Only Deals',
-      reward: 'Up to $50',
-      price: 'Free',
-      icon: '🎁',
-      color: 'green',
-      description: 'Sign up. Earn instantly. No strings attached.',
-      features: [
-        '100% free signup',
-        'Instant rewards',
-        'No KYC needed',
-        'Trusted platforms'
-      ],
-      cta: 'Start Free',
-      route: '/packages/free',
-      highlight: false
-    },
-    {
-      id: 'no-deposit',
-      title: 'No-Deposit Perks',
-      reward: 'Up to $500',
-      price: '€5.99',
-      icon: '💎',
-      color: 'purple',
-      description: 'Earn real assets like crypto or stocks — no deposit required.',
-      features: [
-        'Revolut crypto rewards',
-        'Trading212 free stock',
-        'No payment upfront',
-        'Verified offers only'
-      ],
-      cta: 'View Perks',
-      route: '/packages/no-deposit',
-      highlight: true
-    },
-    {
-      id: 'deposit',
-      title: 'Verified Deposit Bonuses',
-      reward: 'Up to $300',
-      price: '€9.99',
-      icon: '🏦',
-      color: 'blue',
-      description: 'Earn high-value rewards with transparent deposit offers.',
-      features: [
-        'Binance deposit bonuses',
-        'eToro trading perks',
-        'Transparent terms',
-        'Real cash or crypto'
-      ],
-      cta: 'Explore Bonuses',
-      route: '/packages/deposit',
-      highlight: false
-    }
-  ];
+const DiamondIcon = (props) => (
+  <svg viewBox="0 0 24 24" {...props}>
+    <path d="M3 9 7 3h10l4 6-9 12L3 9Z" fill="currentColor" opacity=".15"/>
+    <path d="M7 3h10l4 6h-6l-3 12L9 9H3l4-6Z" fill="currentColor"/>
+  </svg>
+);
 
-  const handleCardClick = (route) => {
-    navigate(route);
-  };
+const BankIcon = (props) => (
+  <svg viewBox="0 0 24 24" {...props}>
+    <path d="M3 9 12 3l9 6v2H3V9Z" fill="currentColor"/>
+    <path d="M5 11h2v7H5zm6 0h2v7h-2zm6 0h2v7h-2zM3 20h18v2H3z" fill="currentColor"/>
+  </svg>
+);
+
+const Card = memo(function Card({ pkg, featured, onAddFromButton, reduceMotion }) {
+  const btnCartRef = useRef(null);
+
+  const base =
+    "relative rounded-2xl p-6 sm:p-8 bg-[#0e1116] ring-1 ring-white/10 text-white/90 " +
+    "transition-transform duration-300 motion-safe:transform-gpu will-change-transform " +
+    "hover:-translate-y-1 hover:scale-[1.015] shadow-sm";
 
   return (
-    <section className="relative z-10 py-20 px-6 bg-gradient-to-b from-[#0e0e15] to-[#0b0b10] text-white overflow-visible">
-      <div className="container mx-auto">
-        <h2 className="font-heading text-4xl font-bold text-center mb-4">Choose Your Package</h2>
-        <p className="font-body text-center mb-4 text-gray-400">
-          Explore verified signup rewards, crypto bonuses, fintech perks & more.
-        </p>
-        <p className="font-body text-center mb-12 text-sm text-purple-400 font-medium">
-          ✨ One-time purchase • No subscription • Lifetime access
-        </p>
-        
-        {/* Cards Container - Responsive sizing */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 justify-center items-stretch overflow-visible relative z-10 max-w-6xl mx-auto pt-6">
-          {packages.map((pkg, index) => (
-            <div
-              key={pkg.id}
-              onClick={() => handleCardClick(pkg.route)}
-              className={`
-                group relative cursor-pointer transition-transform duration-150 ease-out hover:z-20
-                rounded-2xl lg:rounded-3xl shadow-lg flex flex-col justify-between text-center
-                w-full max-w-[320px] lg:max-w-[320px] min-h-[380px] lg:min-h-[480px] mx-auto
-                ${pkg.highlight ? 'lg:scale-110 lg:hover:scale-[1.155]' : 'hover:scale-105'}
-                ${pkg.highlight 
-                  ? 'bg-gradient-to-br from-purple-600/30 via-pink-500/30 to-purple-800/20 border-2 border-pink-400 shadow-pink-500/40 shadow-2xl' 
-                  : `bg-[#14141f] border-2 ${pkg.color === 'green' ? 'border-green-600/60' : 'border-blue-600/60'} shadow-xl`
-                }
-                hover:shadow-2xl
-                ${pkg.color === 'green' ? 'hover:border-green-400 hover:shadow-green-500/30' : 
-                  pkg.color === 'blue' ? 'hover:border-blue-400 hover:shadow-blue-500/30' :
-                  pkg.highlight ? 'hover:border-pink-300 hover:shadow-pink-500/50' : ''}
-              `}
-            >
-              {/* Popular Badge for Highlighted Card */}
-              {pkg.highlight && (
-                <div className="absolute -top-3 lg:-top-4 left-1/2 transform -translate-x-1/2 z-20">
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-600 text-white px-4 lg:px-6 py-1.5 lg:py-2 rounded-full text-xs lg:text-sm font-bold shadow-xl border-2 border-white/20">
-                    MOST POPULAR
-                  </div>
-                </div>
-              )}
+    <div className={base}>
+      {featured && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold bg-fuchsia-600/20 border border-fuchsia-400/40 text-fuchsia-200">
+          MOST POPULAR
+        </span>
+      )}
+      <div className={featured ? "pt-3" : ""} />
 
-              {/* Purple/Pink Glow Effect for Middle Card */}
-              {pkg.highlight && (
-                <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-purple-500/10 opacity-60 pointer-events-none"></div>
-              )}
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-white/10"
+          style={{ background: pkg.iconBg }}
+        >
+          {pkg.icon}
+        </div>
+        <span className="px-2.5 py-1 rounded-full text-xs font-semibold"
+              style={{ background: pkg.pillBg, color: pkg.pillFg }}>
+          {pkg.pill}
+        </span>
+      </div>
 
-              {/* Card Content */}
-              <div className="relative z-10 p-5 lg:p-8 h-full flex flex-col justify-between">
-                
-                {/* Icon & Badge */}
-                <div className="flex flex-col items-center mb-4 lg:mb-6">
-                  <div className={`
-                    text-3xl lg:text-5xl mb-3 lg:mb-4 p-3 lg:p-4 rounded-full transition-transform duration-300
-                    group-hover:scale-110 group-hover:rotate-6
-                    ${pkg.highlight ? 'bg-purple-500/20' :
-                      pkg.color === 'green' ? 'bg-green-500/20' : 'bg-blue-500/20'}
-                  `}>
-                    {pkg.icon}
-                  </div>
-                  <span className={`
-                    text-xs lg:text-sm rounded-full px-3 lg:px-4 py-1.5 lg:py-2 font-semibold mb-2
-                    ${pkg.highlight ? 'bg-white text-purple-600' :
-                      pkg.color === 'green' ? 'bg-green-600 text-white' : 
-                      'bg-blue-600 text-white'}
-                  `}>
-                    {pkg.reward}
-                  </span>
-                  <div className={`
-                    text-xl lg:text-2xl font-bold
-                    ${pkg.highlight ? 'text-white' :
-                      pkg.color === 'green' ? 'text-green-400' : 'text-blue-400'}
-                  `}>
-                    {pkg.price}
-                  </div>
-                </div>
+      <div className="mt-3">
+        <div className="text-3xl font-bold" style={{ color: pkg.priceColor }}>{pkg.price}</div>
+        <h3 className="mt-1 text-2xl font-semibold">{pkg.title}</h3>
+        <p className="mt-1 text-sm text-white/60">{pkg.subtitle}</p>
+      </div>
 
-                {/* Title & Description */}
-                <div className="mb-4 lg:mb-6">
-                  <h3 className="font-heading text-lg lg:text-xl font-bold mb-2 lg:mb-3">{pkg.title}</h3>
-                  <p className={`font-body text-xs lg:text-sm leading-relaxed ${pkg.highlight ? 'text-white' : 'text-gray-400'}`}>
-                    {pkg.description}
-                  </p>
-                </div>
+      <ul className="mt-4 space-y-2 text-sm">
+        {pkg.features.map((f) => (
+          <li key={f} className="flex gap-2">
+            <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ background: pkg.bullet }} />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
 
-                {/* Feature List */}
-                <ul className="text-xs lg:text-sm space-y-2 lg:space-y-3 mb-6 lg:mb-8 flex-grow text-left">
-                  {pkg.features.map((feat, idx) => (
-                    <li key={idx} className="flex items-center gap-2 lg:gap-3 font-body">
-                      <span className={`
-                        text-sm lg:text-lg font-bold flex-shrink-0
-                        ${pkg.highlight ? 'text-white' :
-                          pkg.color === 'green' ? 'text-green-400' : 'text-blue-400'}
-                      `}>
-                        ✔
-                      </span>
-                      <span className={pkg.highlight ? 'text-white' : 'text-gray-300'}>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
+      <button
+        onClick={() => onAddFromButton?.(btnCartRef.current)}
+        className="mt-6 w-full rounded-xl py-3 font-medium bg-white text-black hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+        style={{ boxShadow: "0 4px 20px rgba(0,0,0,.25)" }}
+      >
+        {/* button cart icon (extraction starts here) */}
+        <svg ref={btnCartRef} viewBox="0 0 24 24" className="h-5 w-5">
+          <path d="M6 6h-.8a1 1 0 1 1 0-2H7a1 1 0 0 1 .96.73L8.2 6H20a1 1 0 0 1 .97 1.24l-1.8 7.2A2 2 0 0 1 17.24 16H9a1 1 0 1 1 0-2h8.24l1.2-4.8H8.63l-1.1-3.66A1 1 0 0 0 6.6 5H5.2a1 1 0 1 1 0-2H6a1 1 0 0 1 0 2Z" fill="currentColor"/>
+          <circle cx="10" cy="20" r="1.8" fill="currentColor"/>
+          <circle cx="17" cy="20" r="1.8" fill="currentColor"/>
+        </svg>
+        Add to Cart
+      </button>
+    </div>
+  );
+});
 
-                {/* CTA Button */}
-                <button className={`
-                  w-full py-2 lg:py-2.5 rounded-lg font-semibold text-xs lg:text-sm
-                  transition-all duration-300 transform group-hover:scale-105 group-hover:-translate-y-1
-                  shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-opacity-30
-                  ${pkg.highlight
-                    ? 'bg-white text-purple-600 hover:bg-pink-100 focus:ring-purple-500'
-                    : pkg.color === 'green' 
-                    ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500' 
-                    : 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
-                  }
-                `}>
-                  {pkg.cta}
-                </button>
+export default function PackagesSection({ cartRef }) {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { addToCart, openCart } = useCart();
 
-              </div>
-            </div>
+  const reduceMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const pkgs = useMemo(
+    () => [
+      {
+        key: "starter",
+        title: "Free Starter",
+        subtitle: "Get started with no-risk bonus opportunities.",
+        price: "Free",
+        priceColor: "#22c55e", // emerald-500
+        pill: "Up to $50",
+        pillBg: "rgba(34,197,94,.12)",
+        pillFg: "#86efac",
+        iconBg: "rgba(34,197,94,.10)",
+        bullet: "rgba(255,255,255,.6)",
+        icon: <GiftIcon className="h-6 w-6 text-emerald-400" />,
+        features: ["100% free registration", "Instant bonus access", "No verification required", "Risk-free rewards"],
+      },
+      {
+        key: "pro",
+        title: "Pro Package",
+        subtitle: "Unlock premium bonuses with advanced reward strategies.",
+        price: "€9.90",
+        priceColor: "#e9d5ff", // purple-200
+        pill: "Up to $500",
+        pillBg: "rgba(168,85,247,.14)",
+        pillFg: "#e9d5ff",
+        iconBg: "rgba(168,85,247,.10)",
+        bullet: "rgba(255,255,255,.6)",
+        icon: <DiamondIcon className="h-6 w-6 text-fuchsia-300" />,
+        features: [
+          "Premium bonus offers", 
+          "No-deposit rewards", 
+          "Priority access", 
+          "Advanced tracking tools",
+          "Expert support"
+        ],
+        featured: true,
+      },
+      {
+        key: "elite",
+        title: "Elite Package",
+        subtitle: "Maximum rewards with verified high-value offers.",
+        price: "€29.90",
+        priceColor: "#93c5fd", // blue-300
+        pill: "Up to $300",
+        pillBg: "rgba(59,130,246,.14)",
+        pillFg: "#bfdbfe",
+        iconBg: "rgba(59,130,246,.10)",
+        bullet: "rgba(255,255,255,.6)",
+        icon: <BankIcon className="h-6 w-6 text-blue-300" />,
+        features: ["Deposit bonuses", "Verified offers", "Premium support", "Exclusive access"],
+      },
+    ],
+    []
+  );
+
+  // Memoized callback to prevent unnecessary re-renders
+  const handleAddToCart = useCallback(async (btnCartIcon, pkg) => {
+    if (!isAuthenticated) {
+      alert('Please log in to add items to your cart.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      console.log('Adding to cart:', pkg.key);
+      
+      // Find the product by slug from the database
+      const response = await api.get(`/products/${pkg.key}`);
+      const product = response.data;
+      
+      console.log('Found product:', product);
+      
+      // Trigger premium fly-to-cart animation first, then add to cart
+      if (btnCartIcon && cartRef?.current) {
+        try {
+          flyGift({ 
+            sourceEl: btnCartIcon, 
+            cartEl: cartRef.current, 
+            reduceMotion,
+            packageColor: pkg.priceColor, // Pass the package color for neon effect
+            onArrive: () => {
+              // Animation completed callback if needed
+            }
+          });
+        } catch (animErr) {
+          console.warn("Animation failed gracefully:", animErr);
+        }
+      }
+
+      // Add to cart after animation
+      try {
+        await addToCart(product._id, 1);
+        console.log('Added to cart successfully');
+        // Cart will just update in the navbar without opening
+      } catch (addError) {
+        console.error('Error adding to cart:', addError);
+        // Don't show alert for duplicate items, the animation already provided feedback
+        if (addError.message === 'This package is already in your cart') {
+          console.log('Package already in cart, animation still provided nice feedback');
+          return;
+        }
+        alert(`Failed to add item to cart: ${addError.response?.data?.message || addError.message}`);
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      alert(`Failed to find product: ${error.response?.data?.message || error.message}`);
+    }
+  }, [isAuthenticated, navigate, addToCart, openCart, cartRef, reduceMotion]);
+
+  return (
+    <section
+      id="packages"
+      className="relative z-10 py-20 px-6 text-white"
+      style={{ 
+        contain: "layout paint style",
+        background: 'linear-gradient(180deg, #0e0e15 0%, #0b0b10 100%)'
+      }}
+    >
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold tracking-tight">Choose Your Package</h2>
+          <p className="text-white/70 mt-3 mb-4">
+            Explore verified signup rewards, crypto bonuses, fintech perks & more.
+          </p>
+          <p className="text-sm text-purple-400 font-medium">
+            ✨ One-time purchase • No subscription • Lifetime access
+          </p>
+        </div>
+
+        {/* Top-align so featured can be taller */}
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-start max-w-5xl mx-auto">
+          {pkgs.map((pkg) => (
+            <Card
+              key={pkg.key}
+              pkg={pkg}
+              featured={!!pkg.featured}
+              reduceMotion={reduceMotion}
+              onAddFromButton={(btnCartIcon) => handleAddToCart(btnCartIcon, pkg)}
+            />
           ))}
         </div>
       </div>
     </section>
   );
-};
-
-export default PackagesSection;
+}

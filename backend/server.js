@@ -1,80 +1,75 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-
-// Load environment variables
-dotenv.config();
-
-// Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import mongoose from 'mongoose';
+import { connectMongo } from './src/lib/db.js';
+import authRoutes from './src/routes/auth.js';
+import healthRoute from './src/routes/health.js';
+import productsRouter from './src/routes/products.js';
+import cartRouter from './src/routes/cart.js';
+import meRouter from './src/routes/me.js';
+import { notFound, errorHandler } from './src/middleware/error.js';
 
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://your-frontend-domain.com' : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176'],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
+app.use('/api/products', productsRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/me', meRouter);
+app.use('/api', healthRoute);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Claim Nest Auth Server is running',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    success: false, 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
-  });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ 
-    success: false, 
-    message: 'Route not found' 
-  });
-});
-
-// MongoDB connection
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
-  }
-};
+// Error handling
+app.use(notFound);
+app.use(errorHandler);
 
 // Start server
-const PORT = process.env.PORT || 5000;
+async function startServer() {
+  try {
+    // Try to connect to MongoDB, but don't fail if it's not available
+    try {
+      await connectMongo();
+      console.log('✅ MongoDB connected successfully');
+    } catch (mongoError) {
+      console.warn('⚠️  MongoDB not available, running in mock mode');
+      console.warn('   Install and start MongoDB to enable database features');
+    }
 
-const startServer = async () => {
-  await connectDB();
-  
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-    console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
-  });
-};
+    const server = app.listen(PORT, () => {
+      console.log(`🚀 API on http://localhost:${PORT}`);
+    });
+
+    // Graceful shutdown
+    const gracefulShutdown = async (signal) => {
+      console.log(`\n${signal} received, shutting down gracefully...`);
+
+      server.close(async () => {
+        try {
+          if (mongoose.connection.readyState === 1) {
+            await mongoose.connection.close();
+            console.log('✅ MongoDB connection closed');
+          }
+          process.exit(0);
+        } catch (error) {
+          console.error('❌ Error during shutdown:', error);
+          process.exit(1);
+        }
+      });
+    };
+
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
 
 startServer();
-
-module.exports = app;

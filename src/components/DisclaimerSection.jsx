@@ -7,8 +7,9 @@ const DisclaimerSection = () => {
             Important Disclaimer
           </h3>
           <p className="font-body text-sm text-gray-300 leading-relaxed text-center">
-            Availability of offers can change at any time. Some require deposits or ID verification. 
-            We do our best to keep listings up to date, but please double-check terms on the provider's website.
+            Availability of offers can change at any time. Some require deposits or ID verification.
+            We do our best to keep listings up to date, but please double-check terms on the
+            provider's website.
           </p>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser, FiArrowLeft, FiCheck } from 'react-icons/fi';
 import { authAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { ROUTES } from '../constants/routes';
 import { Player } from '@lottiefiles/react-lottie-player';
 import cLogo from '../assets/images/clogo.png';
 import websitesAnimation from '../assets/animations/websites.json';
@@ -14,23 +15,24 @@ const RegisterPage = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
     // Clear specific error when user starts typing
     if (errors[e.target.name]) {
       setErrors({
         ...errors,
-        [e.target.name]: ''
+        [e.target.name]: '',
       });
     }
   };
@@ -58,7 +60,8 @@ const RegisterPage = () => {
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters long';
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one lowercase letter, one uppercase letter, and one number';
+      newErrors.password =
+        'Password must contain at least one lowercase letter, one uppercase letter, and one number';
     }
 
     // Confirm password validation
@@ -73,7 +76,12 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // Prevent multiple submissions
+    if (isLoading) {
+      return;
+    }
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -87,27 +95,32 @@ const RegisterPage = () => {
       const response = await authAPI.register({
         name: formData.name,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
-      
+
       if (response.data.success) {
-        // Use auth context to login
+        // Use auth context to login first
         login(response.data.data.user, response.data.data.token);
-        
-        // Redirect to dashboard
-        navigate('/dashboard');
+
+        // Show success message briefly, then redirect
+        setIsSuccess(true);
+        setTimeout(() => {
+          navigate(ROUTES.DASHBOARD);
+        }, 300);
       }
     } catch (error) {
       console.error('Registration error:', error);
       if (error.response?.data?.errors) {
         // Handle validation errors from backend
         const backendErrors = {};
-        error.response.data.errors.forEach(err => {
+        error.response.data.errors.forEach((err) => {
           backendErrors[err.path] = err.msg;
         });
         setErrors(backendErrors);
       } else if (error.response?.data?.message) {
         setErrors({ general: error.response.data.message });
+      } else if (error.response?.data?.error) {
+        setErrors({ general: error.response.data.error });
       } else {
         setErrors({ general: 'An error occurred during registration. Please try again.' });
       }
@@ -131,13 +144,12 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col md:flex-row items-center justify-center px-6">
-      
       {/* Left Section - 50% width */}
       <div className="w-full md:w-[50%] flex flex-col items-center justify-center text-white text-center py-8 px-4 md:fixed md:left-0 md:top-0 md:h-screen">
         {/* Back to Home Button */}
         <div className="absolute top-6 left-6 md:top-8 md:left-8">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200"
           >
             <FiArrowLeft size={18} />
@@ -150,9 +162,9 @@ const RegisterPage = () => {
             autoplay
             loop
             src={websitesAnimation}
-            style={{ 
-              width: '450px', 
-              height: '450px'
+            style={{
+              width: '450px',
+              height: '450px',
             }}
             fallback={
               <div className="w-[450px] h-[450px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-2xl flex items-center justify-center border border-purple-500/20">
@@ -165,7 +177,9 @@ const RegisterPage = () => {
           />
           <h1 className="text-2xl font-semibold mt-3">Welcome to Claimify</h1>
           <p className="text-base mt-2 max-w-xs leading-relaxed">
-            Streamline your claims process with<br />intelligent automation and secure management.
+            Streamline your claims process with
+            <br />
+            intelligent automation and secure management.
           </p>
         </div>
       </div>
@@ -176,9 +190,9 @@ const RegisterPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center items-center space-x-3 mb-6">
-              <img 
-                src={cLogo} 
-                alt="Claim Nest Logo" 
+              <img
+                src={cLogo}
+                alt="Claim Nest Logo"
                 className="h-10 w-auto filter brightness-0 invert"
               />
               <span className="font-heading text-xl font-bold text-white">Claim Nest</span>
@@ -193,238 +207,261 @@ const RegisterPage = () => {
             </div>
           )}
 
+          {isSuccess && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <FiCheck className="h-5 w-5 text-green-400" />
+                <p className="text-green-400 text-sm">
+                  Account created successfully! Redirecting to dashboard...
+                </p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Name Field */}
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                  Full Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiUser className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    autoComplete="name"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
-                      errors.name ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="Enter your full name"
-                  />
+            {/* Name Field */}
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiUser className="h-5 w-5 text-gray-400" />
                 </div>
-                {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
+                    errors.name ? 'border-red-500' : 'border-gray-600'
+                  }`}
+                  placeholder="Enter your full name"
+                />
+              </div>
+              {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiMail className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
+                    errors.email ? 'border-red-500' : 'border-gray-600'
+                  }`}
+                  placeholder="Enter your email"
+                />
+              </div>
+              {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`block w-full pl-10 pr-12 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
+                    errors.password ? 'border-red-500' : 'border-gray-600'
+                  }`}
+                  placeholder="Create a password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
+                  ) : (
+                    <FiEye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
+                  )}
+                </button>
               </div>
 
-              {/* Email Field */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiMail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
-                      errors.email ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="Enter your email"
-                  />
-                </div>
-                {errors.email && <p className="mt-1 text-sm text-red-400">{errors.email}</p>}
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiLock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    className={`block w-full pl-10 pr-12 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
-                      errors.password ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="Create a password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showPassword ? (
-                      <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                    ) : (
-                      <FiEye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                    )}
-                  </button>
-                </div>
-                
-                {/* Password Strength Indicator */}
-                {formData.password && (
-                  <div className="mt-2">
-                    <div className="flex space-x-1">
-                      {[1, 2, 3, 4, 5].map((level) => (
-                        <div
-                          key={level}
-                          className={`h-1 flex-1 rounded ${
-                            level <= passwordStrength
-                              ? passwordStrength <= 2
-                                ? 'bg-red-500'
-                                : passwordStrength <= 3
+              {/* Password Strength Indicator */}
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex space-x-1">
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <div
+                        key={level}
+                        className={`h-1 flex-1 rounded ${
+                          level <= passwordStrength
+                            ? passwordStrength <= 2
+                              ? 'bg-red-500'
+                              : passwordStrength <= 3
                                 ? 'bg-yellow-500'
                                 : 'bg-green-500'
-                              : 'bg-gray-600'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Password strength: {
-                        passwordStrength <= 2 ? 'Weak' : 
-                        passwordStrength <= 3 ? 'Medium' : 'Strong'
-                      }
-                    </p>
+                            : 'bg-gray-600'
+                        }`}
+                      />
+                    ))}
                   </div>
-                )}
-                
-                {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
-              </div>
-
-              {/* Confirm Password Field */}
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiLock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className={`block w-full pl-10 pr-12 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
-                      errors.confirmPassword ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="Confirm your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  >
-                    {showConfirmPassword ? (
-                      <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                    ) : (
-                      <FiEye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                    )}
-                  </button>
-                  {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                    <div className="absolute inset-y-0 right-10 flex items-center pointer-events-none">
-                      <FiCheck className="h-5 w-5 text-green-500" />
-                    </div>
-                  )}
+                  <p className="text-xs text-gray-400 mt-1">
+                    Password strength:{' '}
+                    {passwordStrength <= 2 ? 'Weak' : passwordStrength <= 3 ? 'Medium' : 'Strong'}
+                  </p>
                 </div>
-                {errors.confirmPassword && <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>}
-              </div>
+              )}
 
-              {/* Terms and Conditions */}
-              <div className="flex items-start">
-                <input
-                  id="terms"
-                  name="terms"
-                  type="checkbox"
-                  required
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded mt-0.5"
-                />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-300">
-                  I agree to the{' '}
-                  <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                    Terms of Service
-                  </a>{' '}
-                  and{' '}
-                  <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">
-                    Privacy Policy
-                  </a>
-                </label>
-              </div>
+              {errors.password && <p className="mt-1 text-sm text-red-400">{errors.password}</p>}
+            </div>
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            {/* Confirm Password Field */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-300 mb-2"
               >
-                {isLoading ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Creating account...</span>
-                  </div>
-                ) : (
-                  'Create account'
-                )}
-              </button>
-            </form>
-
-            {/* Sign In Link */}
-            <div className="mt-6 text-center">
-              <p className="text-gray-400">
-                Already have an account?{' '}
-                <Link 
-                  to="/login" 
-                  className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-200"
-                >
-                  Sign in
-                </Link>
-              </p>
-            </div>
-
-            {/* Or sign in section */}
-            <div className="mt-6">
+                Confirm Password
+              </label>
               <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-600"></div>
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="h-5 w-5 text-gray-400" />
                 </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-zinc-900 text-gray-400">Or</span>
-                </div>
-              </div>
-              
-              <div className="mt-6">
-                <Link
-                  to="/login"
-                  className="w-full flex justify-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-300 bg-transparent hover:bg-gray-600/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-800 transition-all duration-200"
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={`block w-full pl-10 pr-12 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 ${
+                    errors.confirmPassword ? 'border-red-500' : 'border-gray-600'
+                  }`}
+                  placeholder="Confirm your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  Sign in to existing account
-                </Link>
+                  {showConfirmPassword ? (
+                    <FiEyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
+                  ) : (
+                    <FiEye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
+                  )}
+                </button>
+                {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                  <div className="absolute inset-y-0 right-10 flex items-center pointer-events-none">
+                    <FiCheck className="h-5 w-5 text-green-500" />
+                  </div>
+                )}
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-400">{errors.confirmPassword}</p>
+              )}
+            </div>
+
+            {/* Terms and Conditions */}
+            <div className="flex items-start">
+              <input
+                id="terms"
+                name="terms"
+                type="checkbox"
+                required
+                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-600 bg-gray-700 rounded mt-0.5"
+              />
+              <label htmlFor="terms" className="ml-2 block text-sm text-gray-300">
+                I agree to the{' '}
+                <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a href="#" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+                  Privacy Policy
+                </a>
+              </label>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading || isSuccess}
+              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
+                isSuccess
+                  ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                  : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+              }`}
+            >
+              {isSuccess ? (
+                <div className="flex items-center space-x-2">
+                  <FiCheck className="h-4 w-4" />
+                  <span>Account created!</span>
+                </div>
+              ) : isLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>Creating account...</span>
+                </div>
+              ) : (
+                'Create account'
+              )}
+            </button>
+          </form>
+
+          {/* Sign In Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-400">
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-200"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+
+          {/* Or sign in section */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-zinc-900 text-gray-400">Or</span>
               </div>
             </div>
+
+            <div className="mt-6">
+              <Link
+                to="/login"
+                className="w-full flex justify-center py-3 px-4 border border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-300 bg-transparent hover:bg-gray-600/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 focus:ring-offset-gray-800 transition-all duration-200"
+              >
+                Sign in to existing account
+              </Link>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="mt-8 text-center text-gray-500 text-sm">

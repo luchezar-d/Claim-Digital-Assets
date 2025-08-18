@@ -12,25 +12,19 @@ const registerValidation = [
     .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage('Name must be between 2 and 50 characters'),
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please enter a valid email address'),
+  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email address'),
   body('password')
     .isLength({ min: 6 })
     .withMessage('Password must be at least 6 characters long')
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number')
+    .withMessage(
+      'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+    ),
 ];
 
 const loginValidation = [
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please enter a valid email address'),
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required')
+  body('email').isEmail().normalizeEmail().withMessage('Please enter a valid email address'),
+  body('password').notEmpty().withMessage('Password is required'),
 ];
 
 // @route   POST /api/auth/register
@@ -44,7 +38,7 @@ router.post('/register', registerValidation, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -55,7 +49,7 @@ router.post('/register', registerValidation, async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User with this email already exists'
+        message: 'User with this email already exists',
       });
     }
 
@@ -67,17 +61,13 @@ router.post('/register', registerValidation, async (req, res) => {
     const user = new User({
       name,
       email,
-      passwordHash
+      passwordHash,
     });
 
     await user.save();
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
       success: true,
@@ -87,18 +77,17 @@ router.post('/register', registerValidation, async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
         },
-        token
-      }
+        token,
+      },
     });
-
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during registration',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 });
@@ -114,7 +103,7 @@ router.post('/login', loginValidation, async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -125,7 +114,7 @@ router.post('/login', loginValidation, async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
 
@@ -133,7 +122,7 @@ router.post('/login', loginValidation, async (req, res) => {
     if (!user.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Account is deactivated. Please contact support.'
+        message: 'Account is deactivated. Please contact support.',
       });
     }
 
@@ -142,7 +131,7 @@ router.post('/login', loginValidation, async (req, res) => {
     if (!isPasswordValid) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
 
@@ -151,11 +140,7 @@ router.post('/login', loginValidation, async (req, res) => {
     await user.save();
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       success: true,
@@ -165,18 +150,17 @@ router.post('/login', loginValidation, async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
-          lastLogin: user.lastLogin
+          lastLogin: user.lastLogin,
         },
-        token
-      }
+        token,
+      },
     });
-
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during login',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 });
@@ -191,20 +175,20 @@ router.post('/verify-token', async (req, res) => {
     if (!token) {
       return res.status(400).json({
         success: false,
-        message: 'Token is required'
+        message: 'Token is required',
       });
     }
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Get user
     const user = await User.findById(decoded.userId).select('-passwordHash');
-    
+
     if (!user || !user.isActive) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid token or user not found'
+        message: 'Invalid token or user not found',
       });
     }
 
@@ -215,23 +199,22 @@ router.post('/verify-token', async (req, res) => {
         user: {
           id: user._id,
           name: user.name,
-          email: user.email
-        }
-      }
+          email: user.email,
+        },
+      },
     });
-
   } catch (error) {
     if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired token'
+        message: 'Invalid or expired token',
       });
     }
 
     console.error('Token verification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during token verification'
+      message: 'Server error during token verification',
     });
   }
 });

@@ -10,11 +10,11 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-  
+
   const from = location.state?.from?.pathname || '/dashboard';
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +23,7 @@ const LoginPage = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
     // Clear error when user starts typing
     if (error) setError('');
@@ -36,11 +36,11 @@ const LoginPage = () => {
 
     try {
       const response = await authAPI.login(formData);
-      
+
       if (response.data.success) {
         // Use auth context to login
         login(response.data.data.user, response.data.data.token);
-        
+
         // Redirect to intended page or dashboard
         navigate(from, { replace: true });
       }
@@ -58,13 +58,12 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col md:flex-row items-center justify-center px-4">
-      
       {/* Left side: Lottie animation and text */}
       <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-6">
         {/* Back to Home Button */}
         <div className="absolute top-6 left-6 md:top-8 md:left-8">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200"
           >
             <FiArrowLeft size={18} />
@@ -91,9 +90,9 @@ const LoginPage = () => {
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center items-center space-x-3 mb-6">
-              <img 
-                src={cLogo} 
-                alt="Claim Nest Logo" 
+              <img
+                src={cLogo}
+                alt="Claim Nest Logo"
                 className="h-10 w-auto filter brightness-0 invert"
               />
               <span className="font-heading text-xl font-bold text-white">Claim Nest</span>
@@ -179,7 +178,10 @@ const LoginPage = () => {
                   Remember me
                 </label>
               </div>
-              <a href="#" className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+              <a
+                href="#"
+                className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
                 Forgot password?
               </a>
             </div>
@@ -205,8 +207,8 @@ const LoginPage = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-400">
               Don't have an account?{' '}
-              <Link 
-                to="/register" 
+              <Link
+                to="/register"
                 className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-200"
               >
                 Sign up
@@ -224,7 +226,7 @@ const LoginPage = () => {
                 <span className="px-2 bg-zinc-900 text-gray-400">Or</span>
               </div>
             </div>
-            
+
             <div className="mt-6">
               <Link
                 to="/register"
