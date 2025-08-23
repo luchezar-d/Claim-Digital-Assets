@@ -266,4 +266,201 @@ router.get('/subscription', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/billing/stripe-debug - Debug Stripe transactions and balance
+router.get('/stripe-debug', async (req, res) => {
+  try {
+    console.log('🔍 Checking Stripe transactions and balance...');
+    
+    // Get current balance
+    const balance = await stripe.balance.retrieve();
+    console.log('Current balance:', balance);
+    
+    // Get recent payment intents (last 10)
+    const paymentIntents = await stripe.paymentIntents.list({
+      limit: 10,
+    });
+    console.log('Recent payment intents:', paymentIntents.data.length);
+    
+    // Get recent checkout sessions (last 10)
+    const sessions = await stripe.checkout.sessions.list({
+      limit: 10,
+    });
+    console.log('Recent checkout sessions:', sessions.data.length);
+    
+    // Get recent customers
+    const customers = await stripe.customers.list({
+      limit: 5,
+    });
+    console.log('Recent customers:', customers.data.length);
+    
+    res.json({
+      balance: balance,
+      paymentIntents: paymentIntents.data.map(pi => ({
+        id: pi.id,
+        amount: pi.amount,
+        currency: pi.currency,
+        status: pi.status,
+        created: new Date(pi.created * 1000).toISOString()
+      })),
+      checkoutSessions: sessions.data.map(session => ({
+        id: session.id,
+        amount_total: session.amount_total,
+        currency: session.currency,
+        payment_status: session.payment_status,
+        status: session.status,
+        created: new Date(session.created * 1000).toISOString()
+      })),
+      customers: customers.data.map(customer => ({
+        id: customer.id,
+        email: customer.email,
+        created: new Date(customer.created * 1000).toISOString()
+      }))
+    });
+  } catch (error) {
+    console.error('❌ Stripe debug error:', error);
+    res.status(500).json({ 
+      error: 'Stripe debug failed', 
+      details: error.message 
+    });
+  }
+});
+
+// GET /api/billing/simulate-settlement - Simulate settling pending payments in test mode
+router.get('/simulate-settlement', async (req, res) => {
+  try {
+    console.log('💰 Simulating payment settlement in test mode...');
+    
+    // In test mode, we can simulate settlement by checking recent payment intents
+    // and manually triggering balance events
+    
+    const paymentIntents = await stripe.paymentIntents.list({
+      limit: 20,
+    });
+    
+    const succeededPayments = paymentIntents.data.filter(pi => pi.status === 'succeeded');
+    console.log(`Found ${succeededPayments.length} succeeded payments`);
+    
+    // Get balance transactions (these show actual money movement)
+    const balanceTransactions = await stripe.balanceTransactions.list({
+      limit: 20,
+    });
+    
+    console.log(`Found ${balanceTransactions.data.length} balance transactions`);
+    
+    // Check for any recent transfers or payouts
+    const transfers = await stripe.transfers.list({
+      limit: 10,
+    });
+    
+    // In test mode, we can create a test payout to simulate settlement
+    // This will move money from pending to available
+    try {
+      const testPayout = await stripe.payouts.create({
+        amount: 1000, // 10.00 BGN as a test
+        currency: 'bgn',
+        description: 'Test payout to simulate settlement',
+      });
+      console.log('✅ Created test payout:', testPayout.id);
+    } catch (payoutError) {
+      console.log('ℹ️  Could not create test payout (this is normal):', payoutError.message);
+    }
+    
+    res.json({
+      message: 'Settlement simulation attempted',
+      succeededPayments: succeededPayments.length,
+      balanceTransactions: balanceTransactions.data.length,
+      transfers: transfers.data.length,
+      note: 'In test mode, gross income updates when payments are actually settled. You may need to manually trigger settlement in Stripe dashboard or wait for automatic processing.'
+    });
+  } catch (error) {
+    console.error('❌ Settlement simulation error:', error);
+    res.status(500).json({ 
+      error: 'Settlement simulation failed', 
+      details: error.message 
+    });
+  }
+});
+
+// GET /api/billing/income-analysis - Analyze income data for troubleshooting
+router.get('/income-analysis', async (req, res) => {
+  try {
+    console.log('📊 Analyzing income data...');
+    
+    // Get balance transactions (actual money movement)
+    const balanceTransactions = await stripe.balanceTransactions.list({
+      limit: 50,
+      type: 'charge', // Only look at actual charges
+    });
+    
+    // Calculate total gross income from balance transactions
+    const grossIncomeFromTransactions = balanceTransactions.data.reduce((total, txn) => {
+      if (txn.type === 'charge' && txn.status === 'available') {
+        return total + txn.amount;
+      }
+      return total;
+    }, 0);
+    
+    // Get all charges (payments)
+    const charges = await stripe.charges.list({
+      limit: 50,
+    });
+    
+    const successfulCharges = charges.data.filter(charge => charge.status === 'succeeded');
+    const totalFromCharges = successfulCharges.reduce((total, charge) => total + charge.amount, 0);
+    
+    // Get reporting data (if available in test mode)
+    let reportingData = null;
+    try {
+      // This might not work in test mode, but worth trying
+      const reportRun = await stripe.reporting.reportRuns.create({
+        report_type: 'balance.summary.1',
+        parameters: {
+          interval_start: Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60), // 30 days ago
+          interval_end: Math.floor(Date.now() / 1000),
+        },
+      });
+      reportingData = reportRun;
+    } catch (reportError) {
+      console.log('ℹ️  Reporting API not available in test mode');
+    }
+    
+    res.json({
+      analysis: {
+        balanceTransactionCount: balanceTransactions.data.length,
+        grossIncomeFromAvailableTransactions: grossIncomeFromTransactions,
+        successfulChargesCount: successfulCharges.length,
+        totalFromSuccessfulCharges: totalFromCharges,
+        reportingAvailable: !!reportingData,
+      },
+      balanceTransactions: balanceTransactions.data.map(txn => ({
+        id: txn.id,
+        type: txn.type,
+        amount: txn.amount,
+        currency: txn.currency,
+        status: txn.status,
+        available_on: new Date(txn.available_on * 1000).toISOString(),
+        created: new Date(txn.created * 1000).toISOString(),
+      })),
+      successfulCharges: successfulCharges.map(charge => ({
+        id: charge.id,
+        amount: charge.amount,
+        currency: charge.currency,
+        status: charge.status,
+        created: new Date(charge.created * 1000).toISOString(),
+      })),
+      explanation: {
+        note: "Gross income typically comes from 'available' balance transactions, not just successful payments",
+        pendingExplanation: "Your pending balance suggests payments are recorded but not yet settled for gross income calculation",
+        solution: "In Stripe dashboard, look for manual settlement options or wait for automatic processing"
+      }
+    });
+  } catch (error) {
+    console.error('❌ Income analysis error:', error);
+    res.status(500).json({ 
+      error: 'Income analysis failed', 
+      details: error.message 
+    });
+  }
+});
+
 export default router;

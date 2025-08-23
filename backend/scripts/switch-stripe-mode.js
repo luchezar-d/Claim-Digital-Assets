@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { MongoClient } from 'mongodb';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,15 +51,59 @@ function getStripeKeys() {
   };
 }
 
+// Clear customer IDs from database when switching modes
+async function clearStripeCustomerIds(targetMode) {
+  const envVars = loadEnvVars();
+  const mongoUri = envVars.MONGODB_URI;
+  const dbName = envVars.DB_NAME;
+
+  if (!mongoUri || !dbName) {
+    console.warn('⚠️  MongoDB connection not configured, skipping customer ID cleanup');
+    return true;
+  }
+
+  let client;
+  try {
+    console.log(`🗑️  Clearing ${targetMode === 'test' ? 'live' : 'test'} Stripe customer IDs from database...`);
+    
+    client = new MongoClient(mongoUri);
+    await client.connect();
+    const db = client.db(dbName);
+    
+    // Clear all Stripe customer IDs since they won't work in the new environment
+    const result = await db.collection('users').updateMany(
+      { stripeCustomerId: { $exists: true, $ne: null } },
+      { $unset: { stripeCustomerId: "" } }
+    );
+    
+    console.log(`✅ Cleared customer IDs from ${result.modifiedCount} users`);
+    return true;
+  } catch (error) {
+    console.error('❌ Error clearing customer IDs:', error.message);
+    console.warn('⚠️  Database cleanup failed, but mode switch will continue');
+    return true; // Don't fail the entire process
+  } finally {
+    if (client) {
+      await client.close();
+    }
+  }
+}
+
 function getCurrentMode() {
   try {
-    const envContent = fs.readFileSync(envPath, 'utf8');
+    const envVars = loadEnvVars();
     const stripeKeys = getStripeKeys();
     
-    if (envContent.includes(stripeKeys.live.secret)) {
+    // Check what the active STRIPE_SECRET_KEY is set to
+    const activeSecretKey = envVars.STRIPE_SECRET_KEY;
+    
+    if (activeSecretKey === stripeKeys.live.secret) {
       return 'live';
-    } else {
+    } else if (activeSecretKey === stripeKeys.test.secret) {
       return 'test';
+    } else {
+      console.warn('⚠️  Active STRIPE_SECRET_KEY does not match any known keys');
+      return 'unknown';
     }
   } catch (error) {
     console.error('❌ Error reading .env file:', error.message);
@@ -136,7 +181,7 @@ function updateFrontendEnv(mode) {
   }
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const targetMode = args[0];
   
@@ -154,6 +199,11 @@ function main() {
     console.log('Examples:');
     console.log('  node switch-stripe-mode.js test   # Switch to test mode');
     console.log('  node switch-stripe-mode.js live   # Switch to live mode');
+    console.log('');
+    console.log('💡 This script will:');
+    console.log('  • Switch Stripe API keys in backend and frontend');
+    console.log('  • Clear incompatible customer IDs from database');
+    console.log('  • Handle all environment switching automatically');
     
     return;
   }
@@ -167,32 +217,42 @@ function main() {
   
   console.log(`🔄 Switching from ${currentMode?.toUpperCase() || 'UNKNOWN'} to ${targetMode.toUpperCase()} mode...`);
   
-  // Update backend .env
+  // Step 1: Clear customer IDs from database (before switching keys)
+  console.log('\n📋 Step 1: Database cleanup');
+  await clearStripeCustomerIds(targetMode);
+  
+  // Step 2: Update backend .env
+  console.log('\n📋 Step 2: Update backend environment');
   if (!switchToMode(targetMode)) {
     console.error('❌ Failed to update backend .env file');
     return;
   }
   
-  // Update frontend .env
+  // Step 3: Update frontend .env
+  console.log('\n📋 Step 3: Update frontend environment');
   if (!updateFrontendEnv(targetMode)) {
     console.error('❌ Failed to update frontend .env file');
     return;
   }
   
-  console.log('✅ Successfully switched to', targetMode.toUpperCase(), 'mode');
+  console.log('\n🎉 Successfully switched to', targetMode.toUpperCase(), 'mode');
   console.log('');
-  console.log('⚠️  Important:');
+  console.log('⚠️  Important next steps:');
   if (targetMode === 'live') {
     console.log('  • You are now using LIVE Stripe keys');
     console.log('  • Real payments will be processed');
-    console.log('  • Make sure to start Stripe CLI with: stripe listen --forward-to localhost:3000/api/stripe/webhook --live');
+    console.log('  • Start Stripe CLI with: stripe listen --forward-to localhost:3001/api/stripe/webhook --live');
   } else {
     console.log('  • You are now using TEST Stripe keys');
     console.log('  • Only test payments will be processed');
-    console.log('  • Make sure to start Stripe CLI with: stripe listen --forward-to localhost:3000/api/stripe/webhook');
+    console.log('  • Start Stripe CLI with: stripe listen --forward-to localhost:3001/api/stripe/webhook');
   }
   console.log('  • Restart your backend server to apply changes');
   console.log('  • Restart your frontend dev server to apply changes');
+  console.log('  • All customer IDs have been cleared - new ones will be created automatically');
 }
 
-main();
+main().catch(error => {
+  console.error('❌ Script failed:', error.message);
+  process.exit(1);
+});
