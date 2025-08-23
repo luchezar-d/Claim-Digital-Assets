@@ -1,23 +1,23 @@
 /**
  * Format cents to currency display
- * @param {number} cents - Amount in cents (e.g., 1990 = $19.90)
- * @param {string} currency - Currency code (default: USD)
+ * @param {number} cents - Amount in cents (e.g., 50 = €0.50)
+ * @param {string} currency - Currency code (default: EUR)
  * @returns {string} Formatted currency string
  */
-export function formatCents(cents, currency = 'USD') {
+export function formatCents(cents, currency = 'EUR') {
   if (typeof cents !== 'number' || isNaN(cents)) {
-    return '$0.00';
+    return '€0.00';
   }
 
-  const dollars = cents / 100;
+  const euros = cents / 100;
   
-  // For USD, use simple formatting
-  if (currency === 'USD') {
+  // For EUR, use simple formatting
+  if (currency === 'EUR') {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'EUR',
       minimumFractionDigits: 2,
-    }).format(dollars);
+    }).format(euros);
   }
 
   // For other currencies, use Intl.NumberFormat
@@ -26,9 +26,9 @@ export function formatCents(cents, currency = 'USD') {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 2,
-    }).format(dollars);
+    }).format(euros);
   } catch (error) {
     // Fallback if currency is invalid
-    return `$${dollars.toFixed(2)}`;
+    return `€${euros.toFixed(2)}`;
   }
 }
