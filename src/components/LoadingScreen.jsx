@@ -59,10 +59,10 @@ const LoadingScreen = ({ children }) => {
         <div className="text-center relative z-10">
           {/* Logo and Loading Animation */}
           <div className="flex items-center justify-center space-x-6 mb-8">
-            {/* Claimify Logo/Text */}
+            {/* Claim Digital Assets Logo/Text */}
             <div className="text-left">
               <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-2">
-                Claimify
+                Claim Digital Assets
               </h1>
               <p className="text-gray-400 text-sm tracking-widest uppercase animate-pulse">
                 Loading Experience...

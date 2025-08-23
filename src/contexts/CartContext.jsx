@@ -77,7 +77,7 @@ const CartContext = createContext();
 // Provider component
 export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, initialState);
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, token } = useAuth();
 
   // API Actions
   const fetchCart = useCallback(async () => {
@@ -184,6 +184,30 @@ export function CartProvider({ children }) {
     dispatch({ type: CART_ACTIONS.CLEAR_ERROR });
   }, []);
 
+  const checkout = useCallback(async () => {
+    if (!user || !token) {
+      throw new Error('Authentication required for checkout');
+    }
+
+    dispatch({ type: CART_ACTIONS.SET_LOADING, payload: true });
+    dispatch({ type: CART_ACTIONS.CLEAR_ERROR });
+
+    try {
+      const response = await api.post('/billing/create-cart-checkout-session', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Redirect to Stripe checkout
+      window.location.href = response.data.url;
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || 'Failed to start checkout';
+      dispatch({ type: CART_ACTIONS.SET_ERROR, payload: errorMessage });
+      throw error;
+    } finally {
+      dispatch({ type: CART_ACTIONS.SET_LOADING, payload: false });
+    }
+  }, [user, token]);
+
   const value = {
     // State
     ...state,
@@ -198,6 +222,7 @@ export function CartProvider({ children }) {
     removeItem,
     clearCart,
     clearError,
+    checkout,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

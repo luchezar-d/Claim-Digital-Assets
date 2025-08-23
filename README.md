@@ -1,6 +1,8 @@
-# Claimify - Full-Stack Authentication Platform
+# Claim Digital Assets
 
-A modern, full-stack fintech rewards aggregator with complete authentication system.
+> **Discover. Claim. Earn.** — Your hub for free crypto, stock, and fintech bonuses.
+
+A modern, full-stack fintech rewards aggregator with complete authentication system and premium user experience.
 
 ## Project Overview
 
@@ -25,7 +27,7 @@ A modern, full-stack fintech rewards aggregator with complete authentication sys
 2. Update `backend/.env` with your values:
    ```bash
    MONGODB_URI=mongodb://localhost:27017
-   DB_NAME=claimify_dev
+   DB_NAME=claim-digital-assets_dev
    JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
    PORT=3001
    ```
@@ -124,7 +126,7 @@ cd backend && npm run migrate:users
    Then update `backend/.env` with your actual values:
    ```env
    MONGODB_URI=your-mongodb-uri-here
-   DB_NAME=claimify_dev
+   DB_NAME=claim-digital-assets_dev
    JWT_SECRET=replace_me_with_a_long_random_string
    PORT=3001
    ```
@@ -321,4 +323,4 @@ Private project - All rights reserved.
 
 ---
 
-**Claim Nest** - Modern fintech rewards aggregator with secure authentication.
+**Claim Digital Assets** - Discover. Claim. Earn. Modern fintech rewards aggregator with secure authentication.

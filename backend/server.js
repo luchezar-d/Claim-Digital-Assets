@@ -9,10 +9,15 @@ import healthRoute from './src/routes/health.js';
 import productsRouter from './src/routes/products.js';
 import cartRouter from './src/routes/cart.js';
 import meRouter from './src/routes/me.js';
+import billingRouter from './src/routes/billing.js';
+import stripeWebhookRouter from './src/routes/stripeWebhook.js';
 import { notFound, errorHandler } from './src/middleware/error.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Stripe webhook route (MUST be before express.json middleware)
+app.use('/api/billing/webhook', stripeWebhookRouter);
 
 // Middleware
 app.use(cors());
@@ -24,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/me', meRouter);
+app.use('/api/billing', billingRouter);
 app.use('/api', healthRoute);
 
 // Error handling
