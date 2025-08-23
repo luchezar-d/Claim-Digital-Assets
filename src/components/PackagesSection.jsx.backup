@@ -1,0 +1,293 @@
+// src/components/PackagesSection.jsx
+// Ultra-smooth 60fps optimized version with fly-to-cart animation
+import React, { memo, useCallback } from "react";
+import { useNavigate } from 'react-router-dom';
+import { ShoppingCart } from 'lucide-react';
+import api from '../services/api.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { useCart } from '../contexts/CartContext.jsx';
+import { flyToCart } from '../utils/flyToCart.js';
+
+const Card = memo(function Card({
+  pkg,
+  onAddToCart,
+}) {
+  const base =
+    "relative rounded-2xl p-6 sm:p-8 ring-1 shadow-sm " +
+    "motion-safe:transform-gpu motion-safe:will-change-transform " +
+    "transition-[transform,opacity,box-shadow] duration-300 ease-out " +
+    "bg-[#0e1116] ring-white/10 text-white/90";
+
+  const hover =
+    "hover:-translate-y-1 hover:scale-[1.015] hover:shadow-lg hover:shadow-black/20";
+
+  const featuredStyles = pkg.highlight
+    ? "bg-[radial-gradient(120%_140%_at_50%_-20%,rgba(147,51,234,0.12)_0%,rgba(219,39,119,0.08)_50%,rgba(0,0,0,0)_100%)] ring-[rgba(219,39,119,0.4)]"
+    : pkg.color === 'green'
+    ? "ring-[rgba(34,197,94,0.6)]"
+    : "ring-[rgba(59,130,246,0.6)]";
+
+  // Get package-specific styling
+  const getPackageColors = () => {
+    if (pkg.highlight) {
+      return {
+        iconBg: 'rgba(147, 51, 234, 0.2)',
+        badgeBg: 'white',
+        badgeText: 'rgb(147, 51, 234)',
+        priceColor: 'white',
+        buttonBg: 'white',
+        buttonText: 'rgb(147, 51, 234)',
+      };
+    } else if (pkg.color === 'green') {
+      return {
+        iconBg: 'rgba(34, 197, 94, 0.2)',
+        badgeBg: 'rgb(34, 197, 94)',
+        badgeText: 'white',
+        priceColor: 'rgb(74, 222, 128)',
+        buttonBg: 'rgb(34, 197, 94)',
+        buttonText: 'white',
+      };
+    } else {
+      return {
+        iconBg: 'rgba(59, 130, 246, 0.2)',
+        badgeBg: 'rgb(59, 130, 246)',
+        badgeText: 'white',
+        priceColor: 'rgb(96, 165, 250)',
+        buttonBg: 'rgb(59, 130, 246)',
+        buttonText: 'white',
+      };
+    }
+  };
+
+  const colors = getPackageColors();
+
+  return (
+    <div className={`${base} ${hover} ${featuredStyles} [contain:content]`}>
+      {/* Top badge for featured card */}
+      {pkg.highlight && (
+        <div 
+          className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-xs font-bold ring-1 ring-white/20"
+          style={{ 
+            background: 'linear-gradient(90deg, rgb(147, 51, 234), rgb(219, 39, 119))',
+            color: 'white'
+          }}
+        >
+          MOST POPULAR
+        </div>
+      )}
+
+      {/* Header spacer for badge */}
+      <div className={pkg.highlight ? "pt-3" : ""} />
+
+      <div className="text-center">
+        {/* Package Icon */}
+        <div 
+          className="inline-flex items-center justify-center w-16 h-16 rounded-full text-3xl mb-4"
+          style={{ backgroundColor: colors.iconBg }}
+        >
+          {pkg.icon}
+        </div>
+
+        {/* Reward Badge */}
+        <div 
+          className="inline-block text-xs font-semibold px-3 py-1.5 rounded-full mb-2"
+          style={{ 
+            backgroundColor: colors.badgeBg, 
+            color: colors.badgeText 
+          }}
+        >
+          {pkg.reward}
+        </div>
+
+        {/* Price */}
+        <div 
+          className="text-3xl font-bold mb-2"
+          style={{ color: colors.priceColor }}
+        >
+          {pkg.price}
+        </div>
+
+        {/* Title */}
+        <h3 className="text-xl font-semibold tracking-tight text-white">{pkg.title}</h3>
+        
+        {/* Description */}
+        <p className={`mt-2 text-sm ${pkg.highlight ? 'text-white/80' : 'text-white/60'}`}>
+          {pkg.description}
+        </p>
+      </div>
+
+      {/* Features List */}
+      <ul className="mt-5 space-y-2 text-sm">
+        {pkg.features.map((feature, i) => (
+          <li key={i} className="flex gap-3 items-start">
+            <span 
+              className="mt-1.5 h-1.5 w-1.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: pkg.highlight ? 'white' : colors.priceColor }}
+            />
+            <span className={pkg.highlight ? 'text-white' : 'text-white/90'}>{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* CTA Button */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // Get the shopping cart icon for animation
+          const cartIcon = e.currentTarget.querySelector('svg') || e.currentTarget;
+          onAddToCart(pkg, cartIcon);
+        }}
+        className="mt-6 w-full rounded-xl py-3 font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+        style={{
+          backgroundColor: colors.buttonBg,
+          color: colors.buttonText,
+        }}
+      >
+        <ShoppingCart className="w-4 h-4" />
+        {pkg.cta}
+      </button>
+    </div>
+  );
+});
+
+export default function PackagesSection({ cartRef }) {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const { addToCart, openCart } = useCart();
+
+  const packages = [
+    {
+      id: 'starter',
+      title: 'Free-Only Deals',
+      reward: 'Up to $50',
+      price: 'Free',
+      priceCents: 0,
+      icon: '🎁',
+      color: 'green',
+      description: 'Sign up. Earn instantly. No strings attached.',
+      features: ['100% free signup', 'Instant rewards', 'No KYC needed', 'Trusted platforms'],
+      cta: 'Add to Cart',
+      highlight: false,
+    },
+    {
+      id: 'pro',
+      title: 'No-Deposit Perks',
+      reward: 'Up to $500',
+      price: '€9.90',
+      priceCents: 990,
+      icon: '💎',
+      color: 'purple',
+      description: 'Earn real assets like crypto or stocks — no deposit required.',
+      features: [
+        'Revolut crypto rewards',
+        'Trading212 free stock',
+        'No payment upfront',
+        'Verified offers only',
+      ],
+      cta: 'Add to Cart',
+      highlight: true,
+    },
+    {
+      id: 'elite',
+      title: 'Verified Deposit Bonuses',
+      reward: 'Up to $300',
+      price: '€29.90',
+      priceCents: 2990,
+      icon: '🏦',
+      color: 'blue',
+      description: 'Earn high-value rewards with transparent deposit offers.',
+      features: [
+        'Binance deposit bonuses',
+        'eToro trading perks',
+        'Transparent terms',
+        'Real cash or crypto',
+      ],
+      cta: 'Add to Cart',
+      highlight: false,
+    },
+  ];
+
+  // Memoized callback to prevent unnecessary re-renders
+  const handleAddToCart = useCallback(async (pkg, buttonEl) => {
+    if (!isAuthenticated) {
+      alert('Please log in to add items to your cart.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      console.log('Adding to cart:', pkg.id);
+      
+      // Find the product by slug from the database
+      const response = await api.get(`/products/${pkg.id}`);
+      const product = response.data;
+      
+      console.log('Found product:', product);
+      
+      // Trigger fly-to-cart animation FIRST, then add to cart
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      
+      flyToCart({
+        sourceEl: buttonEl,
+        cartEl: cartRef?.current,
+        reduceMotion,
+        onFinish: async () => {
+          // Add to cart after animation completes
+          try {
+            await addToCart(product._id, 1);
+            console.log('Added to cart successfully');
+            openCart();
+          } catch (cartError) {
+            console.error('Error adding to cart after animation:', cartError);
+            // Don't show alert for duplicate items, just open cart to show what's there
+            if (cartError.message === 'This package is already in your cart') {
+              openCart();
+              return;
+            }
+            alert(`Failed to add item to cart: ${cartError.response?.data?.message || cartError.message}`);
+          }
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      alert(`Failed to fetch product: ${error.response?.data?.message || error.message}`);
+    }
+  }, [isAuthenticated, navigate, addToCart, openCart, cartRef]);
+
+  return (
+    <section
+      id="packages"
+      className="relative z-10 py-20 px-6 text-white content-visibility-auto"
+      style={{ 
+        contain: "layout paint style",
+        background: 'linear-gradient(180deg, #0e0e15 0%, #0b0b10 100%)'
+      }}
+    >
+      <div className="mx-auto max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold tracking-tight">Choose Your Package</h2>
+          <p className="text-white/70 mt-3 mb-4">
+            Explore verified signup rewards, crypto bonuses, fintech perks & more.
+          </p>
+          <p className="text-sm text-purple-400 font-medium">
+            ✨ One-time purchase • No subscription • Lifetime access
+          </p>
+        </div>
+
+        {/* Cards Grid - items-start keeps natural heights */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 items-start max-w-5xl mx-auto">
+          {packages.map((pkg) => (
+            <Card
+              key={pkg.id}
+              pkg={pkg}
+              onAddToCart={handleAddToCart}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

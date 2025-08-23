@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext.jsx';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import { formatCents } from '../../utils/money.js';
 
 export default function SlideCart() {
+  const { user } = useAuth();
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const {
     open,
     items,
@@ -16,6 +19,7 @@ export default function SlideCart() {
     removeItem,
     clearCart,
     clearError,
+    checkout,
   } = useCart();
 
   // Handle ESC key
@@ -47,6 +51,28 @@ export default function SlideCart() {
       document.body.style.paddingRight = '';
     };
   }, [open]);
+
+  const handleCheckout = async () => {
+    if (!user) {
+      alert('Please log in to checkout');
+      return;
+    }
+
+    if (items.length === 0) {
+      alert('Your cart is empty');
+      return;
+    }
+
+    setCheckoutLoading(true);
+    try {
+      await checkout();
+    } catch (error) {
+      console.error('Checkout failed:', error);
+      alert('Checkout failed. Please try again.');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
 
   // Auto-clear error after 5 seconds
   useEffect(() => {
@@ -277,14 +303,39 @@ export default function SlideCart() {
 
               {/* Checkout Button */}
               <button
-                className="w-full bg-gradient-to-r from-purple-600/50 to-pink-600/50 text-purple-200 py-3 px-4 rounded-lg cursor-not-allowed opacity-60 font-medium border border-purple-500/30"
-                disabled
+                onClick={handleCheckout}
+                disabled={!user || items.length === 0 || checkoutLoading || loading}
+                className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                  !user || items.length === 0 || checkoutLoading || loading
+                    ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 text-purple-300 cursor-not-allowed opacity-60 border border-purple-500/20'
+                    : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 border border-purple-500 shadow-lg hover:shadow-xl'
+                }`}
               >
-                Checkout (Coming Soon)
+                {checkoutLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : !user ? (
+                  'Login to Checkout'
+                ) : items.length === 0 ? (
+                  'Cart is Empty'
+                ) : (
+                  'Secure Checkout with Stripe'
+                )}
               </button>
 
               <p className="text-xs text-purple-400 text-center">
-                Secure checkout with Stripe will be available soon
+                {!user ? (
+                  'Please log in to proceed with checkout'
+                ) : items.length === 0 ? (
+                  'Add items to your cart to checkout'
+                ) : (
+                  'Secure payment processing powered by Stripe'
+                )}
               </p>
             </div>
           )}

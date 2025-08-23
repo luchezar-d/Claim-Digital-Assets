@@ -98,7 +98,7 @@ const LoginPage = () => {
               </div>
             }
           />
-          <h1 className="text-2xl font-semibold mt-3">Welcome to Claimify</h1>
+          <h1 className="text-2xl font-semibold mt-3">Welcome to Claim Digital Assets</h1>
           <p className="text-base mt-2 max-w-xs leading-relaxed">
             Streamline your claims process with
             <br />
@@ -115,10 +115,10 @@ const LoginPage = () => {
             <div className="flex justify-center items-center space-x-3 mb-6">
               <img
                 src={cLogo}
-                alt="Claimify Logo"
+                alt="Claim Digital Assets Logo"
                 className="h-10 w-auto filter brightness-0 invert"
               />
-              <span className="font-heading text-xl font-bold text-white">Claimify</span>
+              <span className="font-heading text-xl font-bold text-white">Claim Digital Assets</span>
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">Sign in to your account</h3>
             <p className="text-gray-400">Enter your credentials to continue</p>
@@ -280,7 +280,7 @@ const LoginPage = () => {
 
           {/* Footer */}
           <div className="mt-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2025 Claimify. All rights reserved.</p>
+            <p>&copy; 2025 Claim Digital Assets. All rights reserved.</p>
           </div>
         </div>
       </div>

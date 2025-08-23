@@ -1,4 +1,4 @@
-# Claim Nest Authentication Backend
+# Claim Digital Assets Backend
 
 A complete Node.js + Express backend for user authentication using MongoDB Atlas and JWT tokens.
 
@@ -53,7 +53,7 @@ Then update `.env` with your actual values:
 
 ```env
 MONGODB_URI=your-mongodb-uri-here
-DB_NAME=claimify_dev
+DB_NAME=claim-digital-assets_dev
 JWT_SECRET=replace_me_with_a_long_random_string
 PORT=3001
 ```

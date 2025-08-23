@@ -1,8 +1,9 @@
 {
-  "name": "claimify",
+  "name": "claim-digital-assets",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "description": "Claim Digital Assets — Discover. Claim. Earn. Your hub for free crypto, stock, and fintech bonuses.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,6 +14,7 @@
   "dependencies": {
     "@lottiefiles/lottie-player": "^2.0.12",
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@stripe/stripe-js": "^7.8.0",
     "axios": "^1.11.0",
     "lucide-react": "^0.539.0",
     "react": "^18.3.1",

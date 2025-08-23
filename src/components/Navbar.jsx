@@ -32,10 +32,10 @@ const Navbar = forwardRef(function Navbar(props, cartRef) {
             <Link to="/" className="flex items-center space-x-3">
               <img
                 src={cLogo}
-                alt="Claim Nest Logo"
+                alt="Claim Digital Assets Logo"
                 className="h-16 w-auto filter brightness-0 invert"
               />
-              <span className="font-heading text-2xl font-bold text-white">Claim Nest</span>
+              <span className="font-heading text-2xl font-bold text-white">Claim Digital Assets</span>
             </Link>
           </div>
 

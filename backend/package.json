@@ -1,7 +1,7 @@
 {
-  "name": "claimnest-auth-backend",
+  "name": "claim-digital-assets-backend",
   "version": "1.0.0",
-  "description": "Authentication backend for Claim Nest application",
+  "description": "Authentication backend for Claim Digital Assets application",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -17,9 +17,9 @@
     "express",
     "mongodb",
     "jwt",
-    "claimnest"
+    "claim-digital-assets"
   ],
-  "author": "Claim Nest Team",
+  "author": "Claim Digital Assets Team",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -29,7 +29,8 @@
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "stripe": "^18.4.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
