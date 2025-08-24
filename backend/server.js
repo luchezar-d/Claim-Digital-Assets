@@ -1,4 +1,8 @@
-import 'dotenv/config';
+// Use dotenv in dev, Render env in prod
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+}
+
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
