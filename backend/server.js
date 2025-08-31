@@ -17,7 +17,11 @@ import meRouter from './src/routes/me.js';
 import billingRouter from './src/routes/billing.js';
 import stripeWebhookRouter from './src/routes/stripeWebhook.js';
 import { notFound, errorHandler } from './src/middleware/error.js';
+import { fileURLToPath } from 'url';
 import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
