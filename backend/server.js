@@ -9,13 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
 app.use('/api/billing/webhook', require('./routes/stripeWebhook'));
 
 // --- CORS ---
-const cors = require('cors');
-const allowOrigin = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:5173';
-app.use(cors({
-  origin: allowOrigin, credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-}));
+// Only import/require cors once, and use the import style below
 
 // --- JSON parser ---
 app.use(express.json());
@@ -55,8 +49,13 @@ const PORT = process.env.PORT || 3001;
 // Stripe webhook route (MUST be before express.json middleware)
 app.use('/api/billing/webhook', stripeWebhookRouter);
 
-// Middleware
-app.use(cors());
+// CORS setup (single import, single use)
+const allowOrigin = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:5173';
+app.use(cors({
+  origin: allowOrigin, credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 
