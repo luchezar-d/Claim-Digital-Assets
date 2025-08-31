@@ -1,39 +1,8 @@
+
 // Use dotenv in dev, Render env in prod
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 }
-
-// --- Stripe webhook route (MUST be before JSON parser) ---
-// (Assumes backend/routes/stripeWebhook.js exists)
-// Mount webhook route before JSON parser, but do NOT redeclare app
-app.use('/api/billing/webhook', require('./routes/stripeWebhook'));
-
-// --- CORS ---
-const cors = require('cors');
-const allowOrigin = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:5173';
-app.use(cors({
-  origin: allowOrigin, credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-}));
-
-// --- JSON parser ---
-app.use(express.json());
-
-// --- API routes ---
-// ...existing code for other API routes...
-app.use('/api/billing', require('./routes/billing'));
-
-// --- Health endpoint ---
-app.get('/health', (req, res) => res.status(200).json({ ok: true }));
-
-// --- Serve SPA static and fallback ---
-const path = require('path');
-const clientPath = path.join(__dirname, 'public');
-app.use(express.static(clientPath));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(clientPath, 'index.html'));
-});
 
 import express from 'express';
 import cors from 'cors';
@@ -48,6 +17,7 @@ import meRouter from './src/routes/me.js';
 import billingRouter from './src/routes/billing.js';
 import stripeWebhookRouter from './src/routes/stripeWebhook.js';
 import { notFound, errorHandler } from './src/middleware/error.js';
+import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -55,8 +25,13 @@ const PORT = process.env.PORT || 3001;
 // Stripe webhook route (MUST be before express.json middleware)
 app.use('/api/billing/webhook', stripeWebhookRouter);
 
-// Middleware
-app.use(cors());
+// CORS setup (single import, single use)
+const allowOrigin = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:5173';
+app.use(cors({
+  origin: allowOrigin, credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -71,6 +46,20 @@ app.use('/api', healthRoute);
 // Error handling
 app.use(notFound);
 app.use(errorHandler);
+
+// Health endpoint
+app.get('/health', (req, res) => res.status(200).json({ ok: true }));
+
+// Serve SPA static and fallback
+const clientPath = path.join(__dirname, 'public');
+app.use(express.static(clientPath));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientPath, 'index.html'));
+});
+
+// ...existing code for graceful shutdown and server start...
+
+// ...existing code above (single set of imports, app, PORT, allowOrigin, and all middleware/routes)...
 
 // Start server
 async function startServer() {
