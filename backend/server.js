@@ -47,14 +47,14 @@ app.use('/api/me', meRouter);
 app.use('/api/billing', billingRouter);
 app.use('/api', healthRoute);
 
-// Error handling
-app.use(notFound);
-app.use(errorHandler);
-
 // Health endpoint
 app.get('/health', (req, res) => res.status(200).json({ ok: true }));
 
-// Serve SPA static and fallback
+// Error handling (must come before SPA fallback)
+app.use(notFound);
+app.use(errorHandler);
+
+// Serve SPA static and fallback (must be last)
 const clientPath = path.join(__dirname, 'public');
 app.use(express.static(clientPath));
 app.get('*', (req, res) => {
