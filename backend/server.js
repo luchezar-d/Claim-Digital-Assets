@@ -50,16 +50,16 @@ app.use('/api', healthRoute);
 // Health endpoint
 app.get('/health', (req, res) => res.status(200).json({ ok: true }));
 
-// Error handling (must come before SPA fallback)
-app.use(notFound);
-app.use(errorHandler);
-
 // Serve SPA static and fallback (must be last)
 const clientPath = path.join(__dirname, 'public');
 app.use(express.static(clientPath));
 app.get('*', (req, res) => {
   res.sendFile(path.join(clientPath, 'index.html'));
 });
+
+// Error handling (must be after everything else)
+app.use(notFound);
+app.use(errorHandler);
 
 // ...existing code for graceful shutdown and server start...
 
