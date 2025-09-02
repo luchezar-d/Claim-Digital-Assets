@@ -47,15 +47,19 @@ app.use('/api/me', meRouter);
 app.use('/api/billing', billingRouter);
 app.use('/api', healthRoute);
 
-// Health endpoint
-app.get('/health', (req, res) => res.status(200).json({ ok: true }));
-
-// Serve SPA static and fallback (must be last)
+// --- Serve the built client (SPA) ---
 const clientPath = path.join(__dirname, 'public');
-app.use(express.static(clientPath));
-app.get('*', (req, res) => {
+
+// Serve static assets
+app.use(express.static(clientPath, { index: false, maxAge: '1h' }));
+
+// Send index.html for all non-API routes (SPA fallback)
+app.get(/^\/(?!api)(.*)/, (req, res) => {
   res.sendFile(path.join(clientPath, 'index.html'));
 });
+
+// Optional health check
+app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
 
 // Error handling (must be after everything else)
 app.use(notFound);
