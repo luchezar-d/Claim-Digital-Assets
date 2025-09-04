@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth.js';
 import User from '../models/User.js';
 import Cart from '../models/Cart.js';
 import { PRICE_MAP } from '../../config/prices.js';
+import { createEntitlementSafe } from '../lib/entitlementHelper.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -837,7 +838,8 @@ router.get('/process-completed-checkouts', async (req, res) => {
 // POST /api/billing/sync-user-entitlements - Sync entitlements for a specific user based on completed checkouts
 router.post('/sync-user-entitlements', requireAuth, async (req, res) => {
   try {
-    console.log('🔄 Syncing entitlements for user:', req.user._id);
+    const { sessionId } = req.body; // Optional: sync only specific session
+    console.log('🔄 Syncing entitlements for user:', req.user._id, sessionId ? `for session ${sessionId}` : 'for all sessions');
     
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -852,14 +854,32 @@ router.post('/sync-user-entitlements', requireAuth, async (req, res) => {
       });
     }
     
-    // Get completed checkout sessions for this customer
-    const sessions = await stripe.checkout.sessions.list({
-      customer: user.stripeCustomerId,
-      status: 'complete',
-      limit: 50
-    });
+    let sessions;
     
-    console.log(`🔍 Found ${sessions.data.length} completed sessions for customer ${user.stripeCustomerId}`);
+    if (sessionId) {
+      // Process only the specific session
+      try {
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        if (session.customer === user.stripeCustomerId && session.status === 'complete') {
+          sessions = { data: [session] };
+          console.log(`🔍 Found specific session ${sessionId} for customer ${user.stripeCustomerId}`);
+        } else {
+          console.log(`⚠️ Session ${sessionId} doesn't belong to user or isn't complete`);
+          sessions = { data: [] };
+        }
+      } catch (error) {
+        console.error(`❌ Error retrieving session ${sessionId}:`, error);
+        sessions = { data: [] };
+      }
+    } else {
+      // Get all completed checkout sessions for this customer
+      sessions = await stripe.checkout.sessions.list({
+        customer: user.stripeCustomerId,
+        status: 'complete',
+        limit: 50
+      });
+      console.log(`🔍 Found ${sessions.data.length} completed sessions for customer ${user.stripeCustomerId}`);
+    }
     
     const { default: Entitlement } = await import('../models/Entitlement.js');
     let entitlementsCreated = 0;
@@ -888,33 +908,33 @@ router.post('/sync-user-entitlements', requireAuth, async (req, res) => {
           
           let sessionEntitlementsCreated = 0;
           
-          // Create entitlements for each cart item
+          // Create entitlements for each cart item (max 1 per product type)
           for (const cartItem of cart.items) {
             const product = cartItem.productId;
             
-            // Check if entitlement already exists
-            const existingEntitlement = await Entitlement.findOne({
+            // Use safe entitlement creation to prevent duplicates
+            const result = await createEntitlementSafe({
               userId: user._id,
+              productId: product._id,
               productSlug: product.slug,
+              metadata: {
+                stripeSessionId: session.id,
+                purchaseDate: new Date(session.created * 1000),
+                pricePaid: product.priceCents * cartItem.quantity,
+                syncedAt: new Date(),
+                source: sessionId ? 'payment_success' : 'user_sync',
+                cartItemQuantity: cartItem.quantity
+              }
             });
             
-            if (!existingEntitlement) {
-              const newEnt = await Entitlement.create({
-                userId: user._id,
-                productId: product._id,
-                productSlug: product.slug,
-                status: 'active',
-                metadata: {
-                  stripeSessionId: session.id,
-                  purchaseDate: new Date(session.created * 1000),
-                  pricePaid: product.priceCents * cartItem.quantity,
-                  syncedAt: new Date(),
-                  source: 'user_sync'
-                },
-              });
-              console.log(`✅ Created entitlement ${newEnt._id} for product ${product.slug}`);
+            if (result.success && result.created) {
+              console.log(`✅ Created entitlement ${result.entitlement._id} for product ${product.slug}`);
               sessionEntitlementsCreated++;
               entitlementsCreated++;
+            } else if (result.success && !result.created) {
+              console.log(`ℹ️ Entitlement already exists for product ${product.slug} - prevented duplicate`);
+            } else {
+              console.error(`❌ Failed to create entitlement for product ${product.slug}:`, result.error);
             }
           }
           

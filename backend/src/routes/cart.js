@@ -90,6 +90,20 @@ router.post('/items', async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
+    // Check if user already owns this package type (max 1 per type)
+    const Entitlement = (await import('../models/Entitlement.js')).default;
+    const existingEntitlement = await Entitlement.findOne({
+      userId: req.user._id,
+      productSlug: product.slug,
+      status: 'active'
+    });
+
+    if (existingEntitlement) {
+      return res.status(400).json({ 
+        message: `You already own the ${product.name} package. Each package type can only be purchased once.` 
+      });
+    }
+
     // Get or create cart
     let cart = await Cart.findOne({ userId: req.user._id, status: 'open' });
     if (!cart) {

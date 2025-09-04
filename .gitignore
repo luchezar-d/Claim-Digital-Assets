@@ -235,4 +235,3 @@ backend/logs/
 coverage/
 test-results/
 .nyc_output/
-backend/.env.production

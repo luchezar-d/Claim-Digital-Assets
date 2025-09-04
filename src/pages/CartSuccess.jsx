@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import Container from '../components/ui/Container';
 import Button from '../components/ui/Button';
 import axios from 'axios';
+import { useCart } from '../contexts/CartContext';
 
 const CartSuccess = () => {
   const [syncStatus, setSyncStatus] = useState('syncing'); // 'syncing', 'success', 'error'
+  const { clearCart } = useCart();
 
   useEffect(() => {
     const syncEntitlements = async () => {
@@ -23,7 +25,7 @@ const CartSuccess = () => {
           // Trigger entitlement sync for the current user
           const response = await axios.post(
             'http://localhost:3001/api/billing/sync-user-entitlements',
-            {},
+            { sessionId }, // Pass the specific session ID
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -34,6 +36,16 @@ const CartSuccess = () => {
           
           if (response.data.success) {
             console.log('✅ Entitlements synced successfully:', response.data.entitlementsCreated, 'created');
+            
+            // Clear the cart after successful purchase to prevent reusing old cart items
+            try {
+              console.log('🧹 Clearing cart after successful purchase...');
+              await clearCart();
+              console.log('✅ Cart cleared successfully');
+            } catch (clearError) {
+              console.log('⚠️ Could not clear cart (non-critical):', clearError.message);
+            }
+            
             setSyncStatus('success');
           } else {
             console.error('❌ Entitlement sync failed:', response.data);
@@ -49,7 +61,7 @@ const CartSuccess = () => {
     };
 
     syncEntitlements();
-  }, []);
+  }, [clearCart]);
 
   return (
     <Container className="py-16">
