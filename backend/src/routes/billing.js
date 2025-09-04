@@ -463,4 +463,505 @@ router.get('/income-analysis', async (req, res) => {
   }
 });
 
+// GET /api/billing/test-webhook-processing - Test webhook processing with real data
+router.get('/test-webhook-processing', async (req, res) => {
+  try {
+    console.log('🧪 Testing webhook processing with real data...');
+    
+    // Find admin user
+    const user = await User.findOne({ email: 'admin@gmail.com' });
+    if (!user) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+    
+    console.log('✅ Found user:', user.email, user._id);
+    
+    // Find or create a test cart
+    let cart = await Cart.findOne({ userId: user._id, status: 'open' })
+      .populate('items.productId');
+    
+    if (!cart) {
+      // Create a test cart
+      const Product = (await import('../models/Product.js')).default;
+      const products = await Product.find().limit(2);
+      
+      if (products.length === 0) {
+        return res.status(404).json({ error: 'No products found' });
+      }
+      
+      cart = new Cart({
+        userId: user._id,
+        status: 'open',
+        items: products.map(product => ({
+          productId: product._id,
+          quantity: 1
+        }))
+      });
+      
+      await cart.save();
+      await cart.populate('items.productId');
+      console.log('✅ Created test cart:', cart._id);
+    }
+    
+    console.log('🛒 Using cart:', cart._id, 'with', cart.items.length, 'items');
+    cart.items.forEach(item => {
+      console.log('  - Product:', item.productId.slug);
+    });
+    
+    // Simulate the webhook payload that would be sent after a real payment
+    const testWebhookData = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_test_' + Date.now(),
+          mode: 'payment',
+          customer: user.stripeCustomerId || 'cus_test_customer',
+          payment_status: 'paid',
+          status: 'complete',
+          metadata: {
+            userId: user._id.toString(),
+            cartId: cart._id.toString(),
+            type: 'cart_checkout'
+          }
+        }
+      }
+    };
+    
+    console.log('📦 Test webhook metadata:', testWebhookData.data.object.metadata);
+    
+    // Import and call the webhook processing logic directly
+    const { default: Entitlement } = await import('../models/Entitlement.js');
+    
+    // Process the webhook (similar to the webhook handler logic)
+    const session = testWebhookData.data.object;
+    
+    if (session.mode === 'payment' && session.metadata?.type === 'cart_checkout') {
+      const userId = session.metadata.userId;
+      const cartId = session.metadata.cartId;
+      
+      console.log('🔍 Processing cart checkout for user:', userId, 'cart:', cartId);
+      
+      // Find the user and cart (already have them)
+      console.log('🔍 Found user', user.email, 'and cart', cart._id, 'with', cart.items.length, 'items');
+      
+      // Create entitlements for each purchased item
+      let entitlementsCreated = 0;
+      for (const cartItem of cart.items) {
+        const product = cartItem.productId;
+        console.log('🔍 Processing cart item', product.slug, 'x', cartItem.quantity);
+        
+        // Check if entitlement already exists
+        const existingEntitlement = await Entitlement.findOne({
+          userId: user._id,
+          productSlug: product.slug,
+        });
+        
+        if (!existingEntitlement) {
+          const newEnt = await Entitlement.create({
+            userId: user._id,
+            productId: product._id,
+            productSlug: product.slug,
+            status: 'active',
+            metadata: {
+              stripeSessionId: session.id,
+              purchaseDate: new Date(),
+              pricePaid: product.priceCents * cartItem.quantity,
+            },
+          });
+          console.log('✅ Created entitlement', newEnt._id, 'for', user.email, 'product', product.slug);
+          entitlementsCreated++;
+        } else {
+          console.log('ℹ️ Entitlement already exists for', user.email, 'product', product.slug);
+        }
+      }
+      
+      // Mark cart as completed
+      cart.status = 'ordered';
+      await cart.save();
+      
+      res.json({
+        success: true,
+        message: 'Webhook processing test completed',
+        user: { email: user.email, id: user._id },
+        cart: { id: cart._id, itemCount: cart.items.length },
+        entitlementsCreated,
+        webhookData: testWebhookData
+      });
+    } else {
+      res.json({
+        success: false,
+        message: 'Webhook would not be processed - conditions not met',
+        session: { mode: session.mode, metadata: session.metadata }
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Webhook processing test error:', error);
+    res.status(500).json({ 
+      error: 'Webhook processing test failed', 
+      details: error.message 
+    });
+  }
+});
+
+// GET /api/billing/clear-test-entitlements - Clear test entitlements for testing
+router.get('/clear-test-entitlements', async (req, res) => {
+  try {
+    console.log('🧹 Clearing test entitlements...');
+    
+    const { default: Entitlement } = await import('../models/Entitlement.js');
+    const user = await User.findOne({ email: 'admin@gmail.com' });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+    
+    // Remove all entitlements for this user
+    const result = await Entitlement.deleteMany({ userId: user._id });
+    console.log('🗑️ Deleted', result.deletedCount, 'entitlements for', user.email);
+    
+    res.json({
+      success: true,
+      message: `Cleared ${result.deletedCount} entitlements for ${user.email}`,
+      user: { email: user.email, id: user._id }
+    });
+    
+  } catch (error) {
+    console.error('❌ Clear entitlements error:', error);
+    res.status(500).json({ 
+      error: 'Failed to clear entitlements', 
+      details: error.message 
+    });
+  }
+});
+
+// GET /api/billing/check-entitlements - Check current entitlements
+router.get('/check-entitlements', async (req, res) => {
+  try {
+    const { default: Entitlement } = await import('../models/Entitlement.js');
+    const user = await User.findOne({ email: 'admin@gmail.com' });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+    
+    const entitlements = await Entitlement.find({ userId: user._id });
+    
+    res.json({
+      success: true,
+      user: { email: user.email, id: user._id },
+      entitlements: entitlements.map(ent => ({
+        id: ent._id,
+        productSlug: ent.productSlug,
+        status: ent.status,
+        createdAt: ent.createdAt
+      })),
+      count: entitlements.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Check entitlements error:', error);
+    res.status(500).json({ 
+      error: 'Failed to check entitlements', 
+      details: error.message 
+    });
+  }
+});
+
+// GET /api/billing/get-session-metadata/:sessionId - Get metadata from a specific checkout session
+router.get('/get-session-metadata/:sessionId', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    console.log('🔍 Retrieving session metadata for:', sessionId);
+    
+    // Retrieve the session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    
+    console.log('📦 Session details:', {
+      id: session.id,
+      mode: session.mode,
+      status: session.status,
+      payment_status: session.payment_status,
+      metadata: session.metadata
+    });
+    
+    res.json({
+      success: true,
+      session: {
+        id: session.id,
+        mode: session.mode,
+        status: session.status,
+        payment_status: session.payment_status,
+        customer: session.customer,
+        amount_total: session.amount_total,
+        currency: session.currency,
+        metadata: session.metadata,
+        created: new Date(session.created * 1000).toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error retrieving session metadata:', error);
+    res.status(500).json({ 
+      error: 'Failed to retrieve session metadata', 
+      details: error.message 
+    });
+  }
+});
+
+// GET /api/billing/process-completed-checkouts - Process completed checkout sessions and create entitlements
+router.get('/process-completed-checkouts', async (req, res) => {
+  try {
+    console.log('🔄 Processing completed checkout sessions...');
+    
+    // Get recent completed checkout sessions from Stripe
+    const sessions = await stripe.checkout.sessions.list({
+      limit: 20,
+      status: 'complete'
+    });
+    
+    console.log(`🔍 Found ${sessions.data.length} completed sessions`);
+    
+    const { default: Entitlement } = await import('../models/Entitlement.js');
+    let processedSessions = 0;
+    let entitlementsCreated = 0;
+    const results = [];
+    
+    for (const session of sessions.data) {
+      // Only process cart checkouts
+      if (session.mode === 'payment' && session.metadata?.type === 'cart_checkout') {
+        console.log(`🔍 Processing cart checkout session: ${session.id}`);
+        
+        const userId = session.metadata.userId;
+        const cartId = session.metadata.cartId;
+        
+        if (!userId || !cartId) {
+          console.log(`⚠️ Skipping session ${session.id} - missing userId or cartId`);
+          continue;
+        }
+        
+        try {
+          // Find the user and cart
+          const user = await User.findById(userId);
+          const cart = await Cart.findById(cartId).populate('items.productId');
+          
+          if (!user || !cart) {
+            console.log(`⚠️ Skipping session ${session.id} - user or cart not found`);
+            continue;
+          }
+          
+          console.log(`🔍 Processing session ${session.id} for user ${user.email} with cart ${cart._id}`);
+          
+          let sessionEntitlementsCreated = 0;
+          
+          // Create entitlements for each cart item
+          for (const cartItem of cart.items) {
+            const product = cartItem.productId;
+            
+            // Check if entitlement already exists
+            const existingEntitlement = await Entitlement.findOne({
+              userId: user._id,
+              productSlug: product.slug,
+            });
+            
+            if (!existingEntitlement) {
+              const newEnt = await Entitlement.create({
+                userId: user._id,
+                productId: product._id,
+                productSlug: product.slug,
+                status: 'active',
+                metadata: {
+                  stripeSessionId: session.id,
+                  purchaseDate: new Date(session.created * 1000),
+                  pricePaid: product.priceCents * cartItem.quantity,
+                  processedAt: new Date(),
+                  source: 'manual_processing'
+                },
+              });
+              console.log(`✅ Created entitlement ${newEnt._id} for ${user.email} product ${product.slug}`);
+              sessionEntitlementsCreated++;
+              entitlementsCreated++;
+            } else {
+              console.log(`ℹ️ Entitlement already exists for ${user.email} product ${product.slug}`);
+            }
+          }
+          
+          // Mark cart as ordered if entitlements were created
+          if (sessionEntitlementsCreated > 0 && cart.status === 'open') {
+            cart.status = 'ordered';
+            await cart.save();
+            console.log(`✅ Marked cart ${cart._id} as ordered`);
+          }
+          
+          results.push({
+            sessionId: session.id,
+            userId: user._id,
+            userEmail: user.email,
+            cartId: cart._id,
+            entitlementsCreated: sessionEntitlementsCreated,
+            cartItems: cart.items.length
+          });
+          
+          processedSessions++;
+          
+        } catch (error) {
+          console.error(`❌ Error processing session ${session.id}:`, error);
+          results.push({
+            sessionId: session.id,
+            error: error.message
+          });
+        }
+      }
+    }
+    
+    console.log(`✅ Processed ${processedSessions} sessions, created ${entitlementsCreated} entitlements`);
+    
+    res.json({
+      success: true,
+      message: `Processed ${processedSessions} completed checkout sessions`,
+      totalSessions: sessions.data.length,
+      processedSessions,
+      entitlementsCreated,
+      results
+    });
+    
+  } catch (error) {
+    console.error('❌ Error processing completed checkouts:', error);
+    res.status(500).json({ 
+      error: 'Failed to process completed checkouts', 
+      details: error.message 
+    });
+  }
+});
+
+// POST /api/billing/sync-user-entitlements - Sync entitlements for a specific user based on completed checkouts
+router.post('/sync-user-entitlements', requireAuth, async (req, res) => {
+  try {
+    console.log('🔄 Syncing entitlements for user:', req.user._id);
+    
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    if (!user.stripeCustomerId) {
+      return res.json({
+        success: true,
+        message: 'User has no Stripe customer ID, no entitlements to sync',
+        entitlementsCreated: 0
+      });
+    }
+    
+    // Get completed checkout sessions for this customer
+    const sessions = await stripe.checkout.sessions.list({
+      customer: user.stripeCustomerId,
+      status: 'complete',
+      limit: 50
+    });
+    
+    console.log(`🔍 Found ${sessions.data.length} completed sessions for customer ${user.stripeCustomerId}`);
+    
+    const { default: Entitlement } = await import('../models/Entitlement.js');
+    let entitlementsCreated = 0;
+    const results = [];
+    
+    for (const session of sessions.data) {
+      // Only process cart checkouts
+      if (session.mode === 'payment' && session.metadata?.type === 'cart_checkout') {
+        const cartId = session.metadata.cartId;
+        
+        if (!cartId) {
+          console.log(`⚠️ Skipping session ${session.id} - missing cartId`);
+          continue;
+        }
+        
+        try {
+          // Find the cart
+          const cart = await Cart.findById(cartId).populate('items.productId');
+          
+          if (!cart) {
+            console.log(`⚠️ Skipping session ${session.id} - cart not found`);
+            continue;
+          }
+          
+          console.log(`🔍 Processing session ${session.id} with cart ${cart._id}`);
+          
+          let sessionEntitlementsCreated = 0;
+          
+          // Create entitlements for each cart item
+          for (const cartItem of cart.items) {
+            const product = cartItem.productId;
+            
+            // Check if entitlement already exists
+            const existingEntitlement = await Entitlement.findOne({
+              userId: user._id,
+              productSlug: product.slug,
+            });
+            
+            if (!existingEntitlement) {
+              const newEnt = await Entitlement.create({
+                userId: user._id,
+                productId: product._id,
+                productSlug: product.slug,
+                status: 'active',
+                metadata: {
+                  stripeSessionId: session.id,
+                  purchaseDate: new Date(session.created * 1000),
+                  pricePaid: product.priceCents * cartItem.quantity,
+                  syncedAt: new Date(),
+                  source: 'user_sync'
+                },
+              });
+              console.log(`✅ Created entitlement ${newEnt._id} for product ${product.slug}`);
+              sessionEntitlementsCreated++;
+              entitlementsCreated++;
+            }
+          }
+          
+          results.push({
+            sessionId: session.id,
+            cartId: cart._id,
+            entitlementsCreated: sessionEntitlementsCreated,
+            cartItems: cart.items.length
+          });
+          
+        } catch (error) {
+          console.error(`❌ Error processing session ${session.id}:`, error);
+          results.push({
+            sessionId: session.id,
+            error: error.message
+          });
+        }
+      }
+    }
+    
+    // Get current entitlements
+    const currentEntitlements = await Entitlement.find({ userId: user._id });
+    
+    console.log(`✅ Sync complete: ${entitlementsCreated} new entitlements created`);
+    
+    res.json({
+      success: true,
+      message: `Synced entitlements for ${user.email}`,
+      user: { email: user.email, id: user._id },
+      totalSessions: sessions.data.length,
+      entitlementsCreated,
+      currentEntitlements: currentEntitlements.length,
+      entitlements: currentEntitlements.map(ent => ({
+        productSlug: ent.productSlug,
+        status: ent.status,
+        createdAt: ent.createdAt
+      })),
+      results
+    });
+    
+  } catch (error) {
+    console.error('❌ Error syncing user entitlements:', error);
+    res.status(500).json({ 
+      error: 'Failed to sync user entitlements', 
+      details: error.message 
+    });
+  }
+});
+
 export default router;

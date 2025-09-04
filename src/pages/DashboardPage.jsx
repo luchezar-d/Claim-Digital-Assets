@@ -31,6 +31,17 @@ const DashboardPage = () => {
     try {
       setIsLoadingPackages(true);
       console.log('🔍 Fetching user packages...');
+      
+      // First, try to sync any pending entitlements from completed Stripe sessions
+      try {
+        console.log('🔄 Auto-syncing entitlements before fetching packages...');
+        const { default: api } = await import('../services/api');
+        await api.post('/api/billing/sync-user-entitlements');
+        console.log('✅ Auto-sync completed');
+      } catch (syncError) {
+        console.log('ℹ️ Auto-sync failed (this is normal if no new purchases):', syncError.message);
+      }
+      
       const response = await userAPI.getPackages();
       console.log('📦 Packages response:', response.data);
       setPackages(response.data);

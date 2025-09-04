@@ -1,16 +1,98 @@
 import express from 'express';
+import Stripe from 'stripe';
 import Entitlement from '../models/Entitlement.js';
 import Product from '../models/Product.js';
+import Cart from '../models/Cart.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // All me routes require authentication
 router.use(requireAuth);
 
-// GET /api/me/packages - Get user's active entitlements with product details
+// GET /api/me/packages - Get user's active entitlements with product details (with auto-sync)
 router.get('/packages', async (req, res) => {
   try {
+    console.log('📦 Fetching packages for user:', req.user._id);
+    
+    // Auto-sync entitlements from completed Stripe checkout sessions
+    if (req.user.stripeCustomerId) {
+      try {
+        console.log('🔄 Auto-syncing entitlements from Stripe...');
+        
+        // Get recent completed checkout sessions for this customer
+        const sessions = await stripe.checkout.sessions.list({
+          customer: req.user.stripeCustomerId,
+          status: 'complete',
+          limit: 20
+        });
+        
+        console.log(`🔍 Found ${sessions.data.length} completed sessions for auto-sync`);
+        
+        let autoSyncCreated = 0;
+        
+        for (const session of sessions.data) {
+          // Only process cart checkouts that haven't been processed
+          if (session.mode === 'payment' && session.metadata?.type === 'cart_checkout') {
+            const cartId = session.metadata.cartId;
+            
+            if (cartId) {
+              try {
+                const cart = await Cart.findById(cartId).populate('items.productId');
+                
+                if (cart) {
+                  // Create entitlements for each cart item if they don't exist
+                  for (const cartItem of cart.items) {
+                    const product = cartItem.productId;
+                    
+                    const existingEntitlement = await Entitlement.findOne({
+                      userId: req.user._id,
+                      productSlug: product.slug,
+                    });
+                    
+                    if (!existingEntitlement) {
+                      await Entitlement.create({
+                        userId: req.user._id,
+                        productId: product._id,
+                        productSlug: product.slug,
+                        status: 'active',
+                        metadata: {
+                          stripeSessionId: session.id,
+                          purchaseDate: new Date(session.created * 1000),
+                          pricePaid: product.priceCents * cartItem.quantity,
+                          autoSynced: true,
+                          syncedAt: new Date()
+                        },
+                      });
+                      autoSyncCreated++;
+                      console.log(`✅ Auto-synced entitlement for product ${product.slug}`);
+                    }
+                  }
+                  
+                  // Mark cart as ordered if not already
+                  if (cart.status === 'open') {
+                    cart.status = 'ordered';
+                    await cart.save();
+                  }
+                }
+              } catch (syncError) {
+                console.error(`⚠️ Error auto-syncing session ${session.id}:`, syncError.message);
+              }
+            }
+          }
+        }
+        
+        if (autoSyncCreated > 0) {
+          console.log(`✅ Auto-sync created ${autoSyncCreated} new entitlements`);
+        }
+        
+      } catch (syncError) {
+        console.error('⚠️ Auto-sync failed, continuing with existing entitlements:', syncError.message);
+      }
+    }
+    
+    // Now fetch and return the user's entitlements
     const entitlements = await Entitlement.find({
       userId: req.user._id,
       status: 'active',
@@ -29,6 +111,7 @@ router.get('/packages', async (req, res) => {
         status: entitlement.status,
       }));
 
+    console.log(`📦 Returning ${packages.length} packages for user ${req.user.email}`);
     res.json(packages);
   } catch (error) {
     console.error('Error fetching user packages:', error);
