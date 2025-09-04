@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Cart from '../models/Cart.js';
 import Entitlement from '../models/Entitlement.js';
 import { PRICE_MAP } from '../../config/prices.js';
+import { createEntitlementSafe } from '../lib/entitlementHelper.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -98,32 +99,37 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
 
             if (user && cart) {
               console.log('🔍 Webhook: Found user', user.email, 'and cart', cart._id, 'with', cart.items.length, 'items');
-              // Create entitlements for each purchased item
+              
+              // Create entitlements for each purchased item using safe creation
               for (const cartItem of cart.items) {
                 const product = cartItem.productId;
                 console.log('🔍 Webhook: Processing cart item', product.slug, 'x', cartItem.quantity);
-                // Check if entitlement already exists
-                const existingEntitlement = await Entitlement.findOne({
+                
+                // Use safe entitlement creation to prevent duplicates
+                const result = await createEntitlementSafe({
                   userId: user._id,
+                  productId: product._id,
                   productSlug: product.slug,
+                  metadata: {
+                    stripeSessionId: session.id,
+                    purchaseDate: new Date(),
+                    pricePaid: product.priceCents * cartItem.quantity,
+                    source: 'webhook',
+                    cartItemQuantity: cartItem.quantity
+                  }
                 });
-                if (!existingEntitlement) {
-                  const newEnt = await Entitlement.create({
-                    userId: user._id,
-                    productId: product._id,
-                    productSlug: product.slug,
-                    status: 'active',
-                    metadata: {
-                      stripeSessionId: session.id,
-                      purchaseDate: new Date(),
-                      pricePaid: product.priceCents * cartItem.quantity,
-                    },
-                  });
-                  console.log('✅ Webhook: Created entitlement', newEnt._id, 'for', user.email, 'product', product.slug);
+                
+                if (result.success) {
+                  if (result.created) {
+                    console.log('✅ Webhook: Created entitlement', result.entitlement._id, 'for', user.email, 'product', product.slug);
+                  } else {
+                    console.log('ℹ️ Webhook: Entitlement already exists for', user.email, 'product', product.slug, '- prevented duplicate');
+                  }
                 } else {
-                  console.log('ℹ️ Webhook: Entitlement already exists for', user.email, 'product', product.slug);
+                  console.error('❌ Webhook: Failed to create entitlement for', user.email, 'product', product.slug, ':', result.error);
                 }
               }
+              
               // Mark cart as completed
               cart.status = 'ordered';
               await cart.save();

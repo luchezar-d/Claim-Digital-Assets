@@ -46,6 +46,9 @@ const EntitlementSchema = new mongoose.Schema(
 
 // Compound index for efficient queries
 EntitlementSchema.index({ userId: 1, status: 1 });
-EntitlementSchema.index({ userId: 1, productSlug: 1 });
+
+// CRITICAL: Unique compound index to prevent multiple entitlements per user per product
+// This enforces the business rule: max 1 entitlement per user per product type
+EntitlementSchema.index({ userId: 1, productSlug: 1 }, { unique: true });
 
 export default mongoose.model('Entitlement', EntitlementSchema);

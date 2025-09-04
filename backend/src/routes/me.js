@@ -4,6 +4,7 @@ import Entitlement from '../models/Entitlement.js';
 import Product from '../models/Product.js';
 import Cart from '../models/Cart.js';
 import { requireAuth } from '../middleware/auth.js';
+import { createEntitlementSafe } from '../lib/entitlementHelper.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -46,27 +47,29 @@ router.get('/packages', async (req, res) => {
                   for (const cartItem of cart.items) {
                     const product = cartItem.productId;
                     
-                    const existingEntitlement = await Entitlement.findOne({
+                    // Use safe entitlement creation to prevent duplicates
+                    const result = await createEntitlementSafe({
                       userId: req.user._id,
+                      productId: product._id,
                       productSlug: product.slug,
+                      metadata: {
+                        stripeSessionId: session.id,
+                        purchaseDate: new Date(session.created * 1000),
+                        pricePaid: product.priceCents * cartItem.quantity,
+                        autoSynced: true,
+                        syncedAt: new Date(),
+                        source: 'dashboard_auto_sync',
+                        cartItemQuantity: cartItem.quantity
+                      }
                     });
                     
-                    if (!existingEntitlement) {
-                      await Entitlement.create({
-                        userId: req.user._id,
-                        productId: product._id,
-                        productSlug: product.slug,
-                        status: 'active',
-                        metadata: {
-                          stripeSessionId: session.id,
-                          purchaseDate: new Date(session.created * 1000),
-                          pricePaid: product.priceCents * cartItem.quantity,
-                          autoSynced: true,
-                          syncedAt: new Date()
-                        },
-                      });
+                    if (result.success && result.created) {
                       autoSyncCreated++;
                       console.log(`✅ Auto-synced entitlement for product ${product.slug}`);
+                    } else if (result.success && !result.created) {
+                      console.log(`ℹ️ Entitlement already exists for product ${product.slug} - prevented duplicate`);
+                    } else {
+                      console.error(`❌ Failed to auto-sync entitlement for product ${product.slug}:`, result.error);
                     }
                   }
                   
