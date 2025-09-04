@@ -55,6 +55,7 @@ export const userAPI = {
   updateProfile: (data) => api.put('/user/profile', data),
   changePassword: (data) => api.put('/user/change-password', data),
   deactivateAccount: () => api.put('/user/deactivate'),
+  getPackages: () => api.get('/me/packages'),
 };
 
 export const healthAPI = {

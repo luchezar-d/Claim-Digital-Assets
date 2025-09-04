@@ -66,18 +66,18 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
             const cart = await Cart.findById(cartId).populate('items.productId');
 
             if (user && cart) {
+              console.log('🔍 Webhook: Found user', user.email, 'and cart', cart._id, 'with', cart.items.length, 'items');
               // Create entitlements for each purchased item
               for (const cartItem of cart.items) {
                 const product = cartItem.productId;
-                
+                console.log('🔍 Webhook: Processing cart item', product.slug, 'x', cartItem.quantity);
                 // Check if entitlement already exists
                 const existingEntitlement = await Entitlement.findOne({
                   userId: user._id,
                   productSlug: product.slug,
                 });
-
                 if (!existingEntitlement) {
-                  await Entitlement.create({
+                  const newEnt = await Entitlement.create({
                     userId: user._id,
                     productId: product._id,
                     productSlug: product.slug,
@@ -88,13 +88,14 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
                       pricePaid: product.priceCents * cartItem.quantity,
                     },
                   });
+                  console.log('✅ Webhook: Created entitlement', newEnt._id, 'for', user.email, 'product', product.slug);
+                } else {
+                  console.log('ℹ️ Webhook: Entitlement already exists for', user.email, 'product', product.slug);
                 }
               }
-
               // Mark cart as completed
               cart.status = 'completed';
               await cart.save();
-
               console.log(`✅ Cart checkout completed for user ${user.email}, ${cart.items.length} items purchased`);
             } else {
               console.error('❌ User or cart not found for cart checkout:', { userId, cartId });
