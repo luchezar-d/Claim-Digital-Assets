@@ -21,6 +21,7 @@ import cartRouter from './src/routes/cart.js';
 import meRouter from './src/routes/me.js';
 import billingRouter from './src/routes/billing.js';
 import stripeWebhookRouter from './src/routes/stripeWebhook.js';
+import debugRouter from './src/routes/debug.js';
 import { notFound, errorHandler } from './src/middleware/error.js';
 
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/me', meRouter);
 app.use('/api/billing', billingRouter);
+app.use('/api/debug', debugRouter);
 app.use('/api', healthRoute);
 
 // --- Serve the built client (SPA) ---
