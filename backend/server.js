@@ -1,7 +1,12 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
-// Use dotenv in dev, Render env in prod
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+  dotenv.config({ path: path.resolve(__dirname, '../.env') });
 }
 
 import express from 'express';
@@ -17,11 +22,6 @@ import meRouter from './src/routes/me.js';
 import billingRouter from './src/routes/billing.js';
 import stripeWebhookRouter from './src/routes/stripeWebhook.js';
 import { notFound, errorHandler } from './src/middleware/error.js';
-import { fileURLToPath } from 'url';
-import path from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,9 +30,11 @@ const PORT = process.env.PORT || 3001;
 app.use('/api/billing/webhook', stripeWebhookRouter);
 
 // CORS setup (single import, single use)
-const allowOrigin = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:5173';
+const allowOrigins = process.env.NODE_ENV === 'production'
+  ? undefined
+  : ['http://localhost:5173', 'http://localhost:5174'];
 app.use(cors({
-  origin: allowOrigin, credentials: true,
+  origin: allowOrigins, credentials: true,
   methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization']
 }));
@@ -50,24 +52,87 @@ app.use('/api', healthRoute);
 // --- Serve the built client (SPA) ---
 const clientPath = path.join(__dirname, 'public');
 
-// Serve static assets
-app.use(express.static(clientPath, { index: false, maxAge: '1h' }));
+// Check if public directory exists (production mode)
+import fs from 'fs';
+const publicExists = fs.existsSync(clientPath);
 
-// Send index.html for all non-API routes (SPA fallback)
-app.get(/^\/(?!api)(.*)/, (req, res) => {
-  res.sendFile(path.join(clientPath, 'index.html'));
-});
+if (publicExists) {
+  // Serve static assets
+  app.use(express.static(clientPath, { index: false, maxAge: '1h' }));
+  
+  // Send index.html for all non-API routes (SPA fallback)
+  app.get(/^\/(?!api)(.*)/, (req, res) => {
+    res.sendFile(path.join(clientPath, 'index.html'));
+  });
+} else {
+  // Development mode - redirect to Vite dev server
+  app.get(/^\/(?!api)(.*)/, (req, res) => {
+    res.json({ 
+      message: 'Development mode - Frontend served by Vite',
+      frontend: 'http://localhost:5173',
+      api: `http://localhost:${PORT}/api`
+    });
+  });
+}
 
 // Optional health check
 app.get('/health', (_req, res) => res.status(200).json({ ok: true }));
 
+// Temporary test endpoint to create entitlements manually
+app.get('/test-entitlements', async (req, res) => {
+  try {
+    const User = (await import('./src/models/User.js')).default;
+    const Product = (await import('./src/models/Product.js')).default;
+    const Entitlement = (await import('./src/models/Entitlement.js')).default;
+
+    const user = await User.findOne({ email: 'admin@gmail.com' });
+    if (!user) {
+      return res.status(404).json({ error: 'Admin user not found' });
+    }
+
+    const products = await Product.find({});
+    if (products.length === 0) {
+      return res.status(404).json({ error: 'No products found' });
+    }
+
+    const results = [];
+    for (let i = 0; i < Math.min(2, products.length); i++) {
+      const product = products[i];
+      
+      const existing = await Entitlement.findOne({
+        userId: user._id,
+        productSlug: product.slug
+      });
+
+      if (!existing) {
+        const entitlement = await Entitlement.create({
+          userId: user._id,
+          productId: product._id,
+          productSlug: product.slug,
+          status: 'active'
+        });
+        results.push({ action: 'created', product: product.slug, id: entitlement._id });
+      } else {
+        results.push({ action: 'exists', product: product.slug, id: existing._id });
+      }
+    }
+
+    const allEntitlements = await Entitlement.find({ userId: user._id });
+    res.json({ 
+      message: 'Test entitlements processed',
+      results,
+      totalEntitlements: allEntitlements.length,
+      entitlements: allEntitlements.map(e => ({ id: e._id, productSlug: e.productSlug }))
+    });
+  } catch (error) {
+    console.error('Test entitlements error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Error handling (must be after everything else)
 app.use(notFound);
 app.use(errorHandler);
-
-// ...existing code for graceful shutdown and server start...
-
-// ...existing code above (single set of imports, app, PORT, allowOrigin, and all middleware/routes)...
 
 // Start server
 async function startServer() {
@@ -82,7 +147,7 @@ async function startServer() {
     }
 
     const server = app.listen(PORT, () => {
-      console.log(`🚀 API on http://localhost:${PORT}`);
+      console.log(`🚀 API on http://localhost:${PORT} - with test endpoint`);
     });
 
     // Graceful shutdown
