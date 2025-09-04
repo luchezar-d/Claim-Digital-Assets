@@ -18,35 +18,41 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
   const sig = req.headers['stripe-signature'];
   let event;
 
-  console.log('�🚨🚨 WEBHOOK RECEIVED 🚨🚨🚨:', {
+  console.log('🚨🚨 WEBHOOK RECEIVED 🚨🚨🚨:', {
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
     hasSignature: !!sig,
     bodySize: req.body?.length,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ? 'SET' : 'MISSING'
   });
 
-  // Log raw body for debugging
-  console.log('📋 Raw webhook body (first 500 chars):', req.body.toString().substring(0, 500));
-
-  // TEMPORARY: Skip signature verification for debugging
-  try {
-    event = JSON.parse(req.body.toString());
-    console.log('✅ Webhook parsed (SIGNATURE VERIFICATION DISABLED), event type:', event.type);
-  } catch (err) {
-    console.error('❌ Failed to parse webhook body:', err.message);
-    return res.status(400).send('Invalid JSON');
+  // Log raw body for debugging (only in development)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('📋 Raw webhook body (first 500 chars):', req.body.toString().substring(0, 500));
   }
 
-  // TODO: Re-enable signature verification
-  /*
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log('✅ Webhook signature verified, event type:', event.type);
-  } catch (err) {
-    console.error('❌ Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  // Enable signature verification for production, allow bypass for local development
+  const isProduction = process.env.NODE_ENV === 'production';
+  const shouldVerifySignature = isProduction || process.env.VERIFY_WEBHOOK_SIGNATURE === 'true';
+
+  if (shouldVerifySignature) {
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+      console.log('✅ Webhook signature verified, event type:', event.type);
+    } catch (err) {
+      console.error('❌ Webhook signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  } else {
+    // Development mode - parse without verification
+    try {
+      event = JSON.parse(req.body.toString());
+      console.log('⚠️ Webhook parsed WITHOUT signature verification (dev mode), event type:', event.type);
+    } catch (err) {
+      console.error('❌ Failed to parse webhook body:', err.message);
+      return res.status(400).send('Invalid JSON');
+    }
   }
-  */
 
   try {
     switch (event.type) {
@@ -92,17 +98,35 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
           const userId = session.metadata.userId;
           const cartId = session.metadata.cartId;
 
+          console.log('🛒 Processing cart checkout:', { userId, cartId, sessionId: session.id });
+
           try {
             // Find the user and cart
             const user = await User.findById(userId);
             const cart = await Cart.findById(cartId).populate('items.productId');
 
+            console.log('🔍 Database lookup results:', {
+              userFound: !!user,
+              userEmail: user?.email,
+              cartFound: !!cart,
+              cartStatus: cart?.status,
+              cartItemCount: cart?.items?.length || 0
+            });
+
             if (user && cart) {
               console.log('🔍 Webhook: Found user', user.email, 'and cart', cart._id, 'with', cart.items.length, 'items');
+              
+              let entitlementsCreated = 0;
               
               // Create entitlements for each purchased item using safe creation
               for (const cartItem of cart.items) {
                 const product = cartItem.productId;
+                
+                if (!product) {
+                  console.error('⚠️ Webhook: Cart item missing product data:', cartItem);
+                  continue;
+                }
+                
                 console.log('🔍 Webhook: Processing cart item', product.slug, 'x', cartItem.quantity);
                 
                 // Use safe entitlement creation to prevent duplicates
@@ -115,13 +139,15 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
                     purchaseDate: new Date(),
                     pricePaid: product.priceCents * cartItem.quantity,
                     source: 'webhook',
-                    cartItemQuantity: cartItem.quantity
+                    cartItemQuantity: cartItem.quantity,
+                    environment: process.env.NODE_ENV || 'development'
                   }
                 });
                 
                 if (result.success) {
                   if (result.created) {
                     console.log('✅ Webhook: Created entitlement', result.entitlement._id, 'for', user.email, 'product', product.slug);
+                    entitlementsCreated++;
                   } else {
                     console.log('ℹ️ Webhook: Entitlement already exists for', user.email, 'product', product.slug, '- prevented duplicate');
                   }
@@ -131,14 +157,34 @@ router.post('/', express.raw({ type: 'application/json' }), async (req, res) => 
               }
               
               // Mark cart as completed
+              const oldStatus = cart.status;
               cart.status = 'ordered';
               await cart.save();
-              console.log(`✅ Cart checkout completed for user ${user.email}, ${cart.items.length} items purchased`);
+              
+              console.log(`✅ Cart checkout completed for user ${user.email}:`, {
+                cartId: cart._id,
+                itemsProcessed: cart.items.length,
+                entitlementsCreated,
+                cartStatusChanged: `${oldStatus} → ${cart.status}`,
+                sessionId: session.id
+              });
             } else {
-              console.error('❌ User or cart not found for cart checkout:', { userId, cartId });
+              console.error('❌ User or cart not found for cart checkout:', { 
+                userId, 
+                cartId,
+                userExists: !!user,
+                cartExists: !!cart,
+                sessionId: session.id
+              });
             }
           } catch (error) {
-            console.error('❌ Error processing cart checkout:', error);
+            console.error('❌ Error processing cart checkout:', {
+              error: error.message,
+              stack: error.stack,
+              userId,
+              cartId,
+              sessionId: session.id
+            });
           }
         }
         break;
