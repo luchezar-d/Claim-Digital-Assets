@@ -5,33 +5,40 @@
 ### 1. Check Stripe Dashboard Configuration
 
 **Live Mode Webhook Endpoint:**
-- URL: `https://your-domain.com/api/stripe/webhook`
+- URL: `https://your-domain.com/api/billing/webhook`
 - Events to send: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 - Webhook signing secret: Copy this to your production environment variables
 
 ### 2. Environment Variables Required in Production
 
 ```bash
-# Stripe Configuration
+# Frontend (Vite)
+VITE_API_BASE_URL=https://your-domain.com/api  # Production API URL
+
+# Backend
 STRIPE_SECRET_KEY=sk_live_...  # Live secret key
 STRIPE_PUBLISHABLE_KEY=pk_live_...  # Live publishable key  
 STRIPE_WEBHOOK_SECRET=whsec_...  # Live webhook signing secret
-
-# Database
 MONGODB_URI=mongodb+srv://...
-
-# Application
 NODE_ENV=production
 ```
 
 ### 3. Common Issues & Solutions
 
+#### Issue: SyntaxError - export named 'api' not found
+**Cause:** Incorrect import statements in frontend code
+**Solution:**
+1. Use `import api from '../services/api'` (default import)
+2. Or use `import { api } from '../services/api'` (named import) - both are now supported
+3. Ensure `VITE_API_BASE_URL` is set in production environment
+
 #### Issue: Cart not clearing after purchase
-**Cause:** Webhook not being called or failing
+**Cause:** Webhook not being called or failing, or frontend API calls failing
 **Debug:**
 1. Check Stripe Dashboard > Webhooks > [Your Endpoint] > Recent deliveries
 2. Look for failed webhook attempts
 3. Check application logs for webhook processing
+4. Verify frontend API calls are reaching the backend
 
 #### Issue: No entitlements created
 **Cause:** Database connection issues or webhook signature verification
