@@ -62,4 +62,6 @@ export const healthAPI = {
   check: () => api.get('/health'),
 };
 
+// Export api as both default and named export to handle both import patterns
+export { api };
 export default api;

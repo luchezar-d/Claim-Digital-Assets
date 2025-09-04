@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Container from '../components/ui/Container';
 import Button from '../components/ui/Button';
-import axios from 'axios';
+import api from '../services/api';
 import { useCart } from '../contexts/CartContext';
 
 const CartSuccess = () => {
@@ -19,20 +19,8 @@ const CartSuccess = () => {
         try {
           console.log('🔄 Syncing entitlements after successful payment...');
           
-          // Get auth token
-          const token = localStorage.getItem('token');
-          
-          // Trigger entitlement sync for the current user
-          const response = await axios.post(
-            'http://localhost:3001/api/billing/sync-user-entitlements',
-            { sessionId }, // Pass the specific session ID
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          );
+          // Trigger entitlement sync for the current user using API service
+          const response = await api.post('/billing/sync-user-entitlements', { sessionId });
           
           if (response.data.success) {
             console.log('✅ Entitlements synced successfully:', response.data.entitlementsCreated, 'created');
