@@ -8,6 +8,8 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import PackageOverview from './pages/PackageOverview';
+import PlatformGuide from './pages/PlatformGuide';
 import Billing from './pages/Billing';
 import BillingSuccess from './pages/BillingSuccess';
 import BillingCancel from './pages/BillingCancel';
@@ -29,6 +31,22 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <DashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/packages/:packageId"
+                  element={
+                    <ProtectedRoute>
+                      <PackageOverview />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/packages/:packageId/platforms/:platformId"
+                  element={
+                    <ProtectedRoute>
+                      <PlatformGuide />
                     </ProtectedRoute>
                   }
                 />
